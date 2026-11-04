@@ -537,7 +537,7 @@
 
         function financeNumber(value) {
             if (value === null || value === undefined) return 0;
-            const cleaned = String(value).replace(/[₹,$,\\s]/g, "").replace(/[()]/g, m => m === "(" ? "-" : "");
+            const cleaned = String(value).replace(/[₹,$,\s]/g, "").replace(/[()]/g, m => m === "(" ? "-" : "");
             const n = parseFloat(cleaned);
             return Number.isFinite(n) ? n : 0;
         }
