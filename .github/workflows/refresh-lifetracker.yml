@@ -7,7 +7,7 @@ on:
       - ".github/workflows/refresh-lifetracker.yml"
       - "scripts/export_sheets.py"
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "0 */4 * * *"
 permissions:
   contents: write
 jobs:
