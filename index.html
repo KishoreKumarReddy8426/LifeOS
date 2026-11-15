@@ -57,7 +57,7 @@ function chart(id,type,labels,datasets){if(charts[id])charts[id].destroy();let s
 function table(rs,id,p){if(!rs.length){$(id).innerHTML='<div class="empty">No records for this filter.</div>';return}
  const numeric=k=>rs.some(r=>r[k]!==''&&r[k]!==null&&r[k]!==undefined&&Number.isFinite(Number(String(r[k]).replace(/,/g,''))));
  const isHoursText=k=>/hours?/i.test(k);
- const isMinutes=k=>/\\b(min|mins|minute|minutes)\\b/i.test(k)||norm(k)==='minutes'||norm(k)==='article / blogs';
+ const isMinutes=k=>/(^|\\s)(min|mins|minute|minutes)(\\s|$)/i.test(k)||norm(k)==='minutes'||norm(k)==='article / blogs';
  const cols=Object.keys(rs[0]).filter(k=>norm(k)!=='date'&&!isHoursText(k)&&numeric(k));
  const isDuration=k=>isMinutes(k);
  const label=k=>{if(k==='Minutes')return id==='studyTable'?'Study (hrs)':'Podcast (hrs)';if(k==='Article / Blogs')return 'Article / Blogs (hrs)';if(k==='Sleep Minutes')return 'Sleep (hrs)';if(k==='Office Min'||k==='Office Minutes')return 'Office (hrs)';if(k==='Exercise Min'||k==='Exercise Minutes')return 'Exercise (hrs)';if(k==='Entertainment Min'||k==='Entertainment Minutes')return 'Entertainment (hrs)';return k};
