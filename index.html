@@ -51,18 +51,20 @@ function period(d,p){let y=d.getFullYear(),m=d.getMonth();if(p==='Daily')return 
 function bucket(rs,p){let map=new Map();rs.forEach(r=>{let d=date(r);if(!d)return;let k=period(d,p);if(!map.has(k))map.set(k,[]);map.get(k).push(r)});return [...map].sort((a,b)=>date(a[1][0])-date(b[1][0]))}
 function sum(rs,k){let values=rs.map(r=>metricValue(r,k)).filter(v=>v!==null&&Number.isFinite(v));return values.length?values.reduce((a,b)=>a+b,0):null}
 function fmt(x){return x===null?'—':Number(x).toLocaleString(undefined,{maximumFractionDigits:2})}
-function card(label,value,unit){return '<div class="card"><div class="metric">'+label+'</div><div class="value">'+fmt(value)+' <small class="muted">'+unit+'</small></div></div>'}
+function fmtHoursMinutes(hours){if(hours===null||hours===undefined||!Number.isFinite(Number(hours)))return '—';let t=Math.round(Number(hours)*60),sign=t<0?'-':'';t=Math.abs(t);return sign+Math.floor(t/60)+'.'+String(t%60).padStart(2,'0')}
+function card(label,value,unit){let display=unit==='hrs'?fmtHoursMinutes(value):fmt(value);return '<div class="card"><div class="metric">'+label+'</div><div class="value">'+display+' <small class="muted">'+unit+'</small></div></div>'}
 const chartPalette={'Sleep (hrs)':'#38bdf8','Office (hrs)':'#fb923c','Exercise (hrs)':'#4ade80','Study (hrs)':'#a78bfa','Articles / Blogs (hrs)':'#facc15','Article / Blogs (hrs)':'#facc15','Podcast (hrs)':'#f472b6','Entertainment (hrs)':'#2dd4bf','Steps':'#60a5fa','Distance (km)':'#c084fc','Stairs climbed':'#f97316','Records':'#14b8a6'};
 function chart(id,type,labels,datasets){if(charts[id])charts[id].destroy();let styled=datasets.map(ds=>{let c=chartPalette[ds.label]||'#38bdf8';return {...ds,borderColor:c,backgroundColor:type==='bar'?c:'transparent',pointBackgroundColor:c,pointBorderColor:c,pointHoverBackgroundColor:c,borderWidth:3,pointRadius:type==='line'?3:0,pointHoverRadius:5,fill:false}});charts[id]=new Chart($(id),{type,data:{labels,datasets:styled},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:getComputedStyle(document.body).getPropertyValue('--text').trim()||'#edf4fc'}}},scales:{x:{ticks:{color:getComputedStyle(document.body).getPropertyValue('--muted').trim()||'#9aacc2'},grid:{color:getComputedStyle(document.body).getPropertyValue('--line').trim()||'#293b53'}},y:{beginAtZero:true,ticks:{color:getComputedStyle(document.body).getPropertyValue('--muted').trim()||'#9aacc2'},grid:{color:getComputedStyle(document.body).getPropertyValue('--line').trim()||'#293b53'}}}}})}
 function table(rs,id,p){if(!rs.length){$(id).innerHTML='<div class="empty">No records for this filter.</div>';return}
  const numeric=k=>rs.some(r=>r[k]!==''&&r[k]!==null&&r[k]!==undefined&&Number.isFinite(Number(String(r[k]).replace(/,/g,''))));
  const isHoursText=k=>/hours?/i.test(k);
- const isMinutes=k=>/(^|\\s)(min|mins|minute|minutes)(\\s|$)/i.test(k)||norm(k)==='minutes'||norm(k)==='article / blogs';
+ const isMinutes=k=>/\b(min|mins|minute|minutes)\b/i.test(k)||norm(k)==='minutes'||norm(k)==='article / blogs';
  const cols=Object.keys(rs[0]).filter(k=>norm(k)!=='date'&&!isHoursText(k)&&numeric(k));
  const isDuration=k=>isMinutes(k);
  const label=k=>{if(k==='Minutes')return id==='studyTable'?'Study (hrs)':'Podcast (hrs)';if(k==='Article / Blogs')return 'Article / Blogs (hrs)';if(k==='Sleep Minutes')return 'Sleep (hrs)';if(k==='Office Min'||k==='Office Minutes')return 'Office (hrs)';if(k==='Exercise Min'||k==='Exercise Minutes')return 'Exercise (hrs)';if(k==='Entertainment Min'||k==='Entertainment Minutes')return 'Entertainment (hrs)';return k};
- const total=(items,k)=>items.reduce((s,r)=>s+n(r[k]),0)/(isDuration(k)?60:1);
- const cell=(items,k)=>isDuration(k)?total(items,k).toFixed(2):fmt(total(items,k));
+ const total=(items,k)=>items.reduce((s,r)=>s+n(r[k]),0);
+ const formatDurationMinutes=minutes=>{let t=Math.round(minutes),sign=t<0?'-':'';t=Math.abs(t);return sign+Math.floor(t/60)+'.'+String(t%60).padStart(2,'0')};
+ const cell=(items,k)=>isDuration(k)?formatDurationMinutes(total(items,k)):fmt(total(items,k));
  let groups=bucket(rs,p);let out='<table><thead><tr><th>Period</th>'+cols.map(k=>'<th>'+label(k)+'</th>').join('')+'</tr></thead><tbody>';
  groups.forEach(([periodLabel,items])=>{out+='<tr><td>'+periodLabel+'</td>'+cols.map(k=>'<td>'+cell(items,k)+'</td>').join('')+'</tr>'});
  out+='</tbody><tfoot><tr><td>Grand Total</td>'+cols.map(k=>'<td>'+cell(rs,k)+'</td>').join('')+'</tr></tfoot></table>';$(id).innerHTML=out}
