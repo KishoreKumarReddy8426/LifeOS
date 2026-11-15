@@ -1924,7 +1924,7 @@
       "Sleep Minutes": 540.0,
       "Sleep Hours": "9 Hours 0 Minutes",
       "Exercise Min": 0.0,
-      "Office Min": 540.0
+      "Office Min": 0.0
     },
     {
       "Date": "2026-07-19",
@@ -1933,7 +1933,7 @@
       "Sleep Minutes": 514.0,
       "Sleep Hours": "8 Hours 34 Minutes",
       "Exercise Min": 0.0,
-      "Office Min": 540.0
+      "Office Min": 0.0
     },
     {
       "Date": "2026-07-20",
