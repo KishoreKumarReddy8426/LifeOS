@@ -5235,6 +5235,34 @@
       "Unnamed: 9": "",
       "Unnamed: 10": "",
       "Unnamed: 11": ""
+    },
+    {
+      "Date": "2026-11-15",
+      "Sleep Start": "",
+      "Sleep End": "",
+      "Sleep Minutes": "",
+      "Sleep Hours": "",
+      "Exercise Min": "",
+      "Office Min": "",
+      "Unnamed: 7": "",
+      "Unnamed: 8": "",
+      "Unnamed: 9": "",
+      "Unnamed: 10": "",
+      "Unnamed: 11": ""
+    },
+    {
+      "Date": "2026-11-16",
+      "Sleep Start": "",
+      "Sleep End": "",
+      "Sleep Minutes": "",
+      "Sleep Hours": "",
+      "Exercise Min": "",
+      "Office Min": "",
+      "Unnamed: 7": "",
+      "Unnamed: 8": "",
+      "Unnamed: 9": "",
+      "Unnamed: 10": "",
+      "Unnamed: 11": ""
     }
   ],
   "study": [
@@ -8252,6 +8280,15 @@
       "Hours": "2 Hours 0 Minutes",
       "Article / Blogs": "",
       "Hours.1": "0 Hours 0 Minutes"
+    },
+    {
+      "Date": "2026-11-16",
+      "Category": "",
+      "Topic": "",
+      "Minutes": "",
+      "Hours": "",
+      "Article / Blogs": "",
+      "Hours.1": ""
     }
   ],
   "podcast": [
