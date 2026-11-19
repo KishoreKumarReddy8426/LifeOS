@@ -63,12 +63,13 @@ function table(rs,id,p){if(!rs.length){$(id).innerHTML='<div class="empty">No re
  const allKeys=[...new Set(rs.flatMap(r=>Object.keys(r)))];
  const movieKey=allKeys.find(k=>norm(k)==='movie name');
  const languageKey=allKeys.find(k=>norm(k)==='language');
- const cols=allKeys.filter(k=>norm(k)!=='date'&&!isHoursText(k)&&(numeric(k)||(isPodcast&&(k===movieKey||k===languageKey))));
+ const yearKey=allKeys.find(k=>norm(k)==='year');
+ const cols=allKeys.filter(k=>norm(k)!=='date'&&!isHoursText(k)&&(numeric(k)||(isPodcast&&(k===movieKey||k===languageKey||k===yearKey))));
  const isDuration=k=>isMinutes(k);
- const label=k=>{if(k==='Minutes')return id==='studyTable'?'Study (hrs)':'Podcast (hrs)';if(k==='Article / Blogs')return 'Article / Blogs (hrs)';if(k==='Sleep Minutes')return 'Sleep (hrs)';if(k==='Office Min'||k==='Office Minutes')return 'Office (hrs)';if(k==='Exercise Min'||k==='Exercise Minutes')return 'Exercise (hrs)';if(k==='Entertainment Min'||k==='Entertainment Minutes')return 'Entertainment (hrs)';if(isPodcast&&k===movieKey)return 'Movie Name (COUNT)';if(isPodcast&&k===languageKey)return 'Language (COUNTD)';return k};
+ const label=k=>{if(k==='Minutes')return id==='studyTable'?'Study (hrs)':'Podcast (hrs)';if(k==='Article / Blogs')return 'Article / Blogs (hrs)';if(k==='Sleep Minutes')return 'Sleep (hrs)';if(k==='Office Min'||k==='Office Minutes')return 'Office (hrs)';if(k==='Exercise Min'||k==='Exercise Minutes')return 'Exercise (hrs)';if(k==='Entertainment Min'||k==='Entertainment Minutes')return 'Entertainment (hrs)';if(isPodcast&&k===movieKey)return 'Movie Name (COUNT)';if(isPodcast&&k===languageKey)return 'Language (COUNTD)';if(isPodcast&&k===yearKey)return 'Year (COUNTD)';return k};
  const total=(items,k)=>items.reduce((s,r)=>s+n(r[k]),0);
  const formatDurationMinutes=minutes=>{let t=Math.round(minutes),sign=t<0?'-':'';t=Math.abs(t);return sign+Math.floor(t/60)+'.'+String(t%60).padStart(2,'0')};
- const cell=(items,k)=>isPodcast&&k===movieKey?fmt(items.filter(r=>String(r[k]??'').trim()).length):isPodcast&&k===languageKey?fmt(new Set(items.map(r=>norm(r[k])).filter(Boolean)).size):isDuration(k)?formatDurationMinutes(total(items,k)):fmt(total(items,k));
+ const cell=(items,k)=>isPodcast&&k===movieKey?fmt(items.filter(r=>String(r[k]??'').trim()).length):isPodcast&&k===languageKey?fmt(new Set(items.map(r=>norm(r[k])).filter(Boolean)).size):isPodcast&&k===yearKey?fmt(new Set(items.map(r=>norm(r[k])).filter(Boolean)).size):isDuration(k)?formatDurationMinutes(total(items,k)):fmt(total(items,k));
  let groups=bucket(rs,p);let out='<table><thead><tr><th>Period</th>'+cols.map(k=>'<th>'+label(k)+'</th>').join('')+'</tr></thead><tbody>';
  groups.forEach(([periodLabel,items])=>{out+='<tr><td>'+periodLabel+'</td>'+cols.map(k=>'<td>'+cell(items,k)+'</td>').join('')+'</tr>'});
  out+='</tbody><tfoot><tr><td>Grand Total</td>'+cols.map(k=>'<td>'+cell(rs,k)+'</td>').join('')+'</tr></tfoot></table>';$(id).innerHTML=out}
