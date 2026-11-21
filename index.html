@@ -73,10 +73,42 @@ function table(rs,id,p){if(!rs.length){$(id).innerHTML='<div class="empty">No re
  let groups=bucket(rs,p);let out='<table><thead><tr><th>Period</th>'+cols.map(k=>'<th>'+label(k)+'</th>').join('')+'</tr></thead><tbody>';
  groups.forEach(([periodLabel,items])=>{out+='<tr><td>'+periodLabel+'</td>'+cols.map(k=>'<td>'+cell(items,k)+'</td>').join('')+'</tr>'});
  out+='</tbody><tfoot><tr><td>Grand Total</td>'+cols.map(k=>'<td>'+cell(rs,k)+'</td>').join('')+'</tr></tfoot></table>';$(id).innerHTML=out}
+function overviewTable(p){
+ const sources={daily:filtered('daily'),study:filtered('study'),podcast:filtered('podcast'),health:filtered('health')};
+ const fields=[
+ ['Sleep (hrs)','daily','sleep','duration'],['Exercise (hrs)','daily','exercise','duration'],['Office (hrs)','daily','office','duration'],
+ ['Study (hrs)','study','study','duration'],['Podcast (hrs)','podcast','podcast','duration'],
+ ['Article / Blogs (hrs)','study','articles','duration'],['Entertainment (hrs)','podcast','entertainment','duration'],
+ ['Movie Name (COUNT)','podcast','movie name','count'],['Language (COUNTD)','podcast','language','distinct'],
+ ['Year (COUNTD)','podcast','year','yearDistinct'],['Water (ML)','health','water','waterMl'],
+ ['Water (L)','health','water','numeric'],['Steps','health','steps','numeric'],
+ ['Distance KM','health','distance','numeric'],['Stairs Climbed','health','stairs','numeric']];
+ const groupMaps={};const periods=new Map();
+ for(const [source,records] of Object.entries(sources)){
+  const groups=bucket(records,p);groupMaps[source]=new Map(groups);
+  for(const [label,items] of groups){const t=date(items[0]).getTime();if(!periods.has(label)||t<periods.get(label))periods.set(label,t)}
+ }
+ const ordered=[...periods].sort((a,b)=>a[1]-b[1]).map(x=>x[0]);
+ const duration=v=>{let t=Math.round(v*60);return (t<0?'-':'')+Math.floor(Math.abs(t)/60)+'.'+String(Math.abs(t)%60).padStart(2,'0')};
+ const calculate=(items,field,kind)=>{
+  if(kind==='count')return items.filter(r=>Object.keys(r).some(k=>norm(k)===field&&String(r[k]??'').trim())).length;
+  if(kind==='distinct'||kind==='yearDistinct'){
+   const values=items.map(r=>{const k=Object.keys(r).find(k=>norm(k)===field)||(kind==='yearDistinct'?Object.keys(r).find(k=>norm(k)==='unnamed: 10'):null);return k===undefined||k===null?'':norm(r[k])}).filter(Boolean);
+   return new Set(values).size;
+  }
+  if(kind==='waterMl')return items.reduce((a,r)=>a+(metricValue(r,'water')||0)*1000,0);
+  return items.reduce((a,r)=>a+(metricValue(r,field)||0),0);
+ };
+ const value=(items,field,kind)=>{const v=calculate(items,field,kind);return kind==='duration'?duration(v):fmt(v)};
+ const header='<tr><th>Period</th>'+fields.map(f=>'<th>'+f[0]+'</th>').join('')+'</tr>';
+ const body=ordered.map(label=>'<tr><td>'+label+'</td>'+fields.map(([,source,field,kind])=>'<td>'+value(groupMaps[source].get(label)||[],field,kind)+'</td>').join('')+'</tr>').join('');
+ const footer='<tr><td>Grand Total</td>'+fields.map(([,source,field,kind])=>'<td>'+value(sources[source],field,kind)+'</td>').join('')+'</tr>';
+ $('overviewTable').innerHTML='<table><thead>'+header+'</thead><tbody>'+body+'</tbody><tfoot>'+footer+'</tfoot></table>';
+}
 function trackerSeries(tab,rs){const defs={daily:[['Sleep (hrs)','sleep'],['Office (hrs)','office'],['Exercise (hrs)','exercise']],study:[['Study (hrs)','study'],['Articles / Blogs (hrs)','articles']],podcast:[['Podcast (hrs)','podcast'],['Entertainment (hrs)','entertainment']],health:[['Steps','steps'],['Distance (km)','distance'],['Stairs climbed','stairs'],['Water (L)','water']]};return (defs[tab]||[]).map(([label,id])=>[label,rs,id])}
 function drawMetric(tab,defs,p,canvasId){let options=defs.map(x=>[x[0],x[2]]);let chosen=activeMetric[tab];if(!options.some(x=>x[1]===chosen))chosen=options.length?options[0][1]:'';activeMetric[tab]=chosen;let host=$(tab+'Chips');if(host)host.innerHTML=options.map(([label,id])=>'<button class="chip '+(id===chosen?'active':'')+'" data-metric="'+id+'">'+label+'</button>').join('');if(host)host.querySelectorAll('button').forEach(b=>b.onclick=()=>{activeMetric[tab]=b.dataset.metric;render()});let picked=defs.find(x=>x[2]===chosen);if(!picked){if(charts[canvasId]){charts[canvasId].destroy();delete charts[canvasId]}return}let rs=picked[1],metric=picked[2],groups=bucket(rs,p);chart(canvasId,'line',groups.map(x=>x[0]),[{label:picked[0],data:groups.map(([label,items])=>sum(items,metric)||0),tension:.25}])}
 function render(){let p=$('period').value,d=filtered('daily'),s=filtered('study'),po=filtered('podcast'),h=filtered('health');let dates=new Set(h.map(date).filter(Boolean).map(x=>x.toDateString()));let st=sum(h,'steps');$('kpis').innerHTML=card('Total Sleep Hours',sum(d,'sleep'),'hrs')+card('Total Study Hours',sum(s,'study'),'hrs')+card('Daily Avg Steps',st===null?null:st/(dates.size||1),'steps')+card('Podcast Records',po.length,'records');
-let series=[['Sleep (hrs)',d,'sleep'],['Office (hrs)',d,'office'],['Exercise (hrs)',d,'exercise'],['Study (hrs)',s,'study'],['Articles / Blogs (hrs)',s,'articles'],['Podcast (hrs)',po,'podcast']];drawMetric('overview',series,p,'trend');$('trendTitle').textContent='Overview Trends (hours) · '+p+' view';chart('records','bar',TRACKERS.map(x=>x[1]),[{label:'Records',data:TRACKERS.map(x=>filtered(x[0]).length)}]);let all=TRACKERS.flatMap(([k])=>filtered(k));table(all,'overviewTable',p);TRACKERS.forEach(([k])=>{let rs=filtered(k);table(rs,k+'Table',p);let defs=trackerSeries(k,rs);drawMetric(k,defs,p,k+'Chart')})}
+let series=[['Sleep (hrs)',d,'sleep'],['Office (hrs)',d,'office'],['Exercise (hrs)',d,'exercise'],['Study (hrs)',s,'study'],['Articles / Blogs (hrs)',s,'articles'],['Podcast (hrs)',po,'podcast']];drawMetric('overview',series,p,'trend');$('trendTitle').textContent='Overview Trends (hours) · '+p+' view';chart('records','bar',TRACKERS.map(x=>x[1]),[{label:'Records',data:TRACKERS.map(x=>filtered(x[0]).length)}]);overviewTable(p);TRACKERS.forEach(([k])=>{let rs=filtered(k);table(rs,k+'Table',p);let defs=trackerSeries(k,rs);drawMetric(k,defs,p,k+'Chart')})}
 function filters(){let ds=TRACKERS.flatMap(([k])=>rows(k).map(date).filter(Boolean));$('year').innerHTML='<option value="">All Years</option>'+[...new Set(ds.map(d=>d.getFullYear()))].sort((a,b)=>b-a).map(y=>'<option>'+y+'</option>').join('');$('month').innerHTML='<option value="">All Months</option>'+Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">'+new Date(2000,i,1).toLocaleString(undefined,{month:'long'})+'</option>').join('')}
 async function load(){ $('status').textContent='Refreshing…';try{let r=await fetch(DATA+'?v='+Date.now());if(!r.ok)throw Error('HTTP '+r.status);data=await r.json();filters();render();$('status').textContent='Live Sync Active · '+new Date().toLocaleTimeString()}catch(e){$('status').textContent='Data unavailable: '+e.message}}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
