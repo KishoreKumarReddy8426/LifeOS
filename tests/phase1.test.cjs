@@ -217,3 +217,18 @@ test('month and quarter filters without a year scope data to the current year', 
   api.setFilter('', 'Q4', '');
   assert.deepEqual(api.filtered('daily').map(r => r.Date), ['2026-11-01', '2026-10-01']);
 });
+
+test('quarter goal targets prorate podcast goals across calendar months', () => {
+  const api = createHarness();
+  api.setFilter('2026', 'Q4', '');
+  assert.equal(api.goalDays(), 56);
+  const expected = 31 + (25 * 31 / 30);
+  assert.ok(Math.abs(api.podcastTarget() - expected) < 1e-9);
+});
+
+test('completed leap-year February uses all 29 calendar days for goals', () => {
+  const api = createHarness();
+  api.setFilter('2024', '', '2');
+  assert.equal(api.goalDays(), 29);
+  assert.equal(api.podcastTarget(), 31);
+});
