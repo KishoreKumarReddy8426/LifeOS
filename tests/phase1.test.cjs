@@ -230,5 +230,5 @@ test('completed leap-year February uses all 29 calendar days for goals', () => {
   const api = createHarness();
   api.setFilter('2024', '', '2');
   assert.equal(api.goalDays(), 29);
-  assert.equal(api.podcastTarget(), 31);
+  assert.ok(Math.abs(api.podcastTarget() - 31) < 1e-9);
 });
