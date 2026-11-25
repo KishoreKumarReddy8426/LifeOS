@@ -59,6 +59,9 @@ const mime = { '.html': 'text/html; charset=utf-8', '.json': 'application/json; 
     }
     console.log('PASS: all four tracker tabs render charts and data tables');
 
+    // Return to the overview before exercising its table controls; the tracker tabs hide it.
+    await page.locator('.tab[data-tab="overview"]').click();
+    await page.locator('#overviewTable .tableTools input').waitFor({ state: 'visible' });
     await page.locator('#overviewTable .tableTools input').fill('no-such-lifeos-row-xyz');
     assert.equal(await page.locator('#overviewTable table tbody tr:visible').count(), 0, 'table search should filter rows');
     await page.locator('#overviewTable .tableTools input').fill('');
