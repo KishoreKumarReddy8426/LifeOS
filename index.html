@@ -59,7 +59,7 @@ function originalComparison(now=new Date()){
  if(m&&q&&Math.floor((m-1)/3)+1!==q)return null;
  const width=m?1:q?3:12, startMonth=m?m-1:q?(q-1)*3:0;
  const start=new Date(y,startMonth,1),end=new Date(y,startMonth+width,1);
- const prev=new Date(y,startMonth-(all?12:width),1),prevEnd=new Date(prev.getFullYear(),prev.getMonth()+width,1);
+ const prev=new Date(y,startMonth-(all&&m?12:width),1),prevEnd=new Date(prev.getFullYear(),prev.getMonth()+width,1);
  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
  if(start>=today)return null;
  const partial=today<end, stop=partial?today:end;
