@@ -197,13 +197,13 @@
       "Unnamed: 11": ""
     },
     {
-      "Date": "2025-01-15",
+      "Date": "",
       "Sleep Start": "03:30 PM",
       "Sleep End": "06:30 PM",
       "Sleep Minutes": 180.0,
       "Sleep Hours": "3 hours 0 mins",
       "Exercise Min": "",
-      "Office Min": 540.0,
+      "Office Min": "",
       "Unnamed: 7": "",
       "Unnamed: 8": "",
       "Unnamed: 9": "",
@@ -2101,13 +2101,13 @@
       "Unnamed: 11": ""
     },
     {
-      "Date": "2025-05-20",
+      "Date": "",
       "Sleep Start": "06:30 PM",
       "Sleep End": "07:30 PM",
       "Sleep Minutes": 60.0,
       "Sleep Hours": "0 hours 60 mins",
       "Exercise Min": "",
-      "Office Min": 540.0,
+      "Office Min": "",
       "Unnamed: 7": "",
       "Unnamed: 8": "",
       "Unnamed: 9": "",
@@ -2563,13 +2563,13 @@
       "Unnamed: 11": ""
     },
     {
-      "Date": "2025-06-19",
+      "Date": "",
       "Sleep Start": "11:15 PM",
       "Sleep End": "11:55 PM",
       "Sleep Minutes": 40.0,
       "Sleep Hours": "0 hours 40 mins",
       "Exercise Min": "",
-      "Office Min": 540.0,
+      "Office Min": "",
       "Unnamed: 7": "",
       "Unnamed: 8": "",
       "Unnamed: 9": "",
@@ -2998,20 +2998,6 @@
     },
     {
       "Date": "2025-07-15",
-      "Sleep Start": "12:15 AM",
-      "Sleep End": "09:00 AM",
-      "Sleep Minutes": 525.0,
-      "Sleep Hours": "8 hours 45 mins",
-      "Exercise Min": "",
-      "Office Min": 540.0,
-      "Unnamed: 7": "",
-      "Unnamed: 8": "",
-      "Unnamed: 9": "",
-      "Unnamed: 10": "",
-      "Unnamed: 11": ""
-    },
-    {
-      "Date": "2025-07-15",
       "Sleep Start": "11:30 PM",
       "Sleep End": "09:00 AM",
       "Sleep Minutes": 570.0,
@@ -3235,25 +3221,11 @@
       "Unnamed: 11": ""
     },
     {
-      "Date": "2025-07-28",
+      "Date": "2025-07-29",
       "Sleep Start": "11:11 PM",
       "Sleep End": "08:15 AM",
       "Sleep Minutes": 544.0,
       "Sleep Hours": "9 hours 4 mins",
-      "Exercise Min": "",
-      "Office Min": 540.0,
-      "Unnamed: 7": "",
-      "Unnamed: 8": "",
-      "Unnamed: 9": "",
-      "Unnamed: 10": "",
-      "Unnamed: 11": ""
-    },
-    {
-      "Date": "2025-07-29",
-      "Sleep Start": "",
-      "Sleep End": "",
-      "Sleep Minutes": "",
-      "Sleep Hours": "",
       "Exercise Min": "",
       "Office Min": 540.0,
       "Unnamed: 7": "",
@@ -5419,25 +5391,11 @@
       "Unnamed: 11": ""
     },
     {
-      "Date": "2025-12-16",
+      "Date": "2025-12-17",
       "Sleep Start": "11:11 PM",
       "Sleep End": "08:30 AM",
       "Sleep Minutes": 559.0,
       "Sleep Hours": "9 hours 19 mins",
-      "Exercise Min": "",
-      "Office Min": 540.0,
-      "Unnamed: 7": "",
-      "Unnamed: 8": "",
-      "Unnamed: 9": "",
-      "Unnamed: 10": "",
-      "Unnamed: 11": ""
-    },
-    {
-      "Date": "2025-12-17",
-      "Sleep Start": "",
-      "Sleep End": "",
-      "Sleep Minutes": "",
-      "Sleep Hours": "",
       "Exercise Min": "",
       "Office Min": 540.0,
       "Unnamed: 7": "",
@@ -14245,7 +14203,7 @@
       "Entertainment Min": 95.0,
       "Entertainment Hours": "1h 35m",
       "Movie Name": "Camp Crasher",
-      "Language": "Spanish",
+      "Language": "English",
       "Year": 2024.0,
       "Unnamed: 11": ""
     },
@@ -14315,7 +14273,7 @@
       "Entertainment Min": 98.0,
       "Entertainment Hours": "1h 38m",
       "Movie Name": "Ad Vitam",
-      "Language": "French",
+      "Language": "English",
       "Year": 2025.0,
       "Unnamed: 11": ""
     },
@@ -15169,7 +15127,7 @@
       "Entertainment Min": 99.0,
       "Entertainment Hours": "1h 39m",
       "Movie Name": "Chhaad – The Terrace",
-      "Language": "Bengali",
+      "Language": "English",
       "Year": 2025.0,
       "Unnamed: 11": ""
     },
@@ -15505,7 +15463,7 @@
       "Entertainment Min": 134.0,
       "Entertainment Hours": "2h 14m",
       "Movie Name": "Bullet Train Explosion",
-      "Language": "Japanese",
+      "Language": "English",
       "Year": 2025.0,
       "Unnamed: 11": ""
     },
@@ -15575,7 +15533,7 @@
       "Entertainment Min": 97.0,
       "Entertainment Hours": "1h 37m",
       "Movie Name": "The Calendar Killer",
-      "Language": "German",
+      "Language": "English",
       "Year": 2025.0,
       "Unnamed: 11": ""
     },
@@ -15701,7 +15659,7 @@
       "Entertainment Min": 106.0,
       "Entertainment Hours": "1h 46m",
       "Movie Name": "Bad Influence",
-      "Language": "Spanish",
+      "Language": "English",
       "Year": 2025.0,
       "Unnamed: 11": ""
     },
@@ -16289,7 +16247,7 @@
       "Entertainment Min": 105.0,
       "Entertainment Hours": "1h 45m",
       "Movie Name": "The Tearsmith",
-      "Language": "Italian",
+      "Language": "English",
       "Year": 2024.0,
       "Unnamed: 11": ""
     },
@@ -16345,7 +16303,7 @@
       "Entertainment Min": 100.0,
       "Entertainment Hours": "1h 40m",
       "Movie Name": "Brick",
-      "Language": "German",
+      "Language": "English",
       "Year": 2025.0,
       "Unnamed: 11": ""
     },
@@ -17325,7 +17283,7 @@
       "Entertainment Min": 108.0,
       "Entertainment Hours": "1h 48m",
       "Movie Name": "The Great Flood",
-      "Language": "Korean",
+      "Language": "English",
       "Year": 2025.0,
       "Unnamed: 11": ""
     },
@@ -23790,11 +23748,11 @@
       "Podcast Episode": "Episode-306",
       "Minutes": 18.0,
       "Hours": "0 Hours 18 Minutes",
-      "Entertainment Min": "",
-      "Entertainment Hours": "",
-      "Movie Name": "",
-      "Language": "",
-      "Year": "",
+      "Entertainment Min": 108.0,
+      "Entertainment Hours": "1h 48m",
+      "Movie Name": "Perfect Liars (Perfectos mentirosos)",
+      "Language": "English",
+      "Year": 2026.0,
       "Unnamed: 11": ""
     },
     {
@@ -23804,20 +23762,6 @@
       "Podcast Episode": "Episode-307",
       "Minutes": 28.0,
       "Hours": "0 Hours 28 Minutes",
-      "Entertainment Min": 108.0,
-      "Entertainment Hours": "1h 48m",
-      "Movie Name": "Perfect Liars (Perfectos mentirosos)",
-      "Language": "English",
-      "Year": 2026.0,
-      "Unnamed: 11": ""
-    },
-    {
-      "Date": "2026-11-22",
-      "Podcast Host": "",
-      "Podcast Name": "",
-      "Podcast Episode": "",
-      "Minutes": "",
-      "Hours": "",
       "Entertainment Min": 102.0,
       "Entertainment Hours": "1h 42m",
       "Movie Name": "Steps",
@@ -23826,7 +23770,7 @@
       "Unnamed: 11": ""
     },
     {
-      "Date": "2026-11-23",
+      "Date": "2026-11-22",
       "Podcast Host": "",
       "Podcast Name": "",
       "Podcast Episode": "",
@@ -23840,7 +23784,35 @@
       "Unnamed: 11": ""
     },
     {
+      "Date": "2026-11-23",
+      "Podcast Host": "",
+      "Podcast Name": "",
+      "Podcast Episode": "",
+      "Minutes": "",
+      "Hours": "",
+      "Entertainment Min": 107.0,
+      "Entertainment Hours": "1h 47m",
+      "Movie Name": "Clashing Through the Snow",
+      "Language": "English",
+      "Year": 2026.0,
+      "Unnamed: 11": ""
+    },
+    {
       "Date": "2026-11-24",
+      "Podcast Host": "",
+      "Podcast Name": "",
+      "Podcast Episode": "",
+      "Minutes": "",
+      "Hours": "",
+      "Entertainment Min": "",
+      "Entertainment Hours": "",
+      "Movie Name": "",
+      "Language": "",
+      "Year": "",
+      "Unnamed: 11": ""
+    },
+    {
+      "Date": "2026-11-25",
       "Podcast Host": "",
       "Podcast Name": "",
       "Podcast Episode": "",
