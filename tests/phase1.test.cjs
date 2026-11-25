@@ -49,7 +49,7 @@ globalThis.__lifeosTest = {
     $('year').value = ''; $('quarter').value = ''; $('month').value = '';
   },
   filtered, comparison, goalDays, podcastTarget, selectedBounds, priorBounds,
-  metricValue, date, kpiValues, rows, sum,
+  metricValue, date, kpiValues, podcastRecords, rows, sum,
   getGoals() { return goals; }
 };`);
   assert.notEqual(instrumented, dashboardSource, 'test harness must replace the page startup call');
@@ -65,6 +65,21 @@ globalThis.__lifeosTest = {
   api.setData(data);
   return api;
 }
+
+test('podcast KPI counts only rows with actual podcast content, not dated entertainment/movie rows', () => {
+  const api = createHarness();
+  const datedEmpty = { Date: '2026-01-01', 'Podcast Host': '', 'Podcast Name': '', 'Podcast Episode': '', Minutes: '', Hours: '', 'Entertainment Min': 45, 'Movie Name': 'A film' };
+  const actualName = { Date: '2026-01-02', 'Podcast Host': 'Host A', 'Podcast Name': 'Show A', 'Podcast Episode': '', Minutes: '', Hours: '' };
+  const actualDuration = { Date: '2026-01-03', 'Podcast Host': '', 'Podcast Name': '', 'Podcast Episode': '', Minutes: 30, Hours: '' };
+  assert.equal(api.podcastRecords([datedEmpty, actualName, actualDuration]).length, 2);
+  assert.equal(api.kpiValues([], [], [datedEmpty, actualName, actualDuration], [])[3], 2);
+});
+test('podcast rows with entertainment-only content do not inflate the podcast count', () => {
+  const api = createHarness();
+  const entertainmentOnly = { Date: '2026-02-01', 'Podcast Host': '', 'Podcast Name': '', 'Podcast Episode': '', Minutes: '', Hours: '', 'Entertainment Min': 60, 'Entertainment Hours': '1h' };
+  assert.equal(api.podcastRecords([entertainmentOnly]).length, 0);
+  assert.equal(api.kpiValues([], [], [entertainmentOnly], [])[3], 0);
+});
 
 test('dashboard script parses and the real calculation functions load', () => {
   assert.equal(typeof createHarness().comparison, 'function');
