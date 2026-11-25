@@ -1,0 +1,37 @@
+name: LifeOS desktop browser tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feature/lifeos-phase-1]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  desktop-chromium:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.56.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Prepare screenshot directory
+        run: mkdir -p artifacts
+      - name: Run desktop Chromium smoke tests
+        run: node tests/desktop-smoke.cjs
+      - name: Upload desktop screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lifeos-desktop-browser-screenshot
+          path: artifacts/desktop-dashboard.png
+          if-no-files-found: ignore
