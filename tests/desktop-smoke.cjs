@@ -52,6 +52,37 @@ const mime = { '.html': 'text/html; charset=utf-8', '.json': 'application/json; 
     await page.locator('#reset').click();
     console.log('PASS: period selector, reset and 7-day quick filter respond');
 
+    // Verify chart comparison alignment and the sleep-goal reference line against source data.
+    const yearLabel = (await page.locator('#year option').nth(1).textContent()).trim();
+    await page.locator('#year').selectOption({ label: yearLabel });
+    await page.waitForFunction(() => {
+      const chart = window.Chart && window.Chart.getChart('trend');
+      return chart && chart.data.datasets.some(ds => /previous period$/.test(ds.label)) &&
+        chart.data.datasets.some(ds => /target$/.test(ds.label));
+    });
+    const comparisonCheck = await page.evaluate(async year => {
+      const source = await (await fetch('./sheet_data.json')).json();
+      const chart = window.Chart.getChart('trend');
+      const previous = chart.data.datasets.find(ds => /previous period$/.test(ds.label));
+      const target = chart.data.datasets.find(ds => /target$/.test(ds.label));
+      const rows = source.daily.filter(row => String(row.Date || '').startsWith((Number(year) - 1) + '-01') &&
+        row['Sleep Minutes'] !== '' && row['Sleep Minutes'] !== null && row['Sleep Minutes'] !== undefined);
+      return {
+        previous: previous.data[0],
+        expectedPrevious: rows.reduce((total, row) => total + Number(row['Sleep Minutes']), 0) / 60,
+        target: target.data[0],
+        januaryDays: new Date(Number(year), 1, 0).getDate()
+      };
+    }, yearLabel);
+    assert.ok(Number.isFinite(comparisonCheck.expectedPrevious) && comparisonCheck.expectedPrevious > 0,
+      'previous January should contain source sleep observations');
+    assert.ok(Math.abs(comparisonCheck.previous - comparisonCheck.expectedPrevious) < 1e-8,
+      'previous-period chart series should align to January of the prior year');
+    assert.ok(Math.abs(comparisonCheck.target - comparisonCheck.januaryDays * 8) < 1e-8,
+      'January sleep target should equal calendar days multiplied by the daily goal');
+    await page.locator('#reset').click();
+    console.log('PASS: chart previous-period alignment and sleep target reference line match source data');
+
     for (const [tab, canvas] of [['daily', 'dailyChart'], ['study', 'studyChart'], ['podcast', 'podcastChart'], ['health', 'healthChart']]) {
       await page.locator('.tab[data-tab="' + tab + '"]').click();
       await page.waitForFunction(id => window.Chart && window.Chart.getChart(id), canvas, { timeout: 15000 });
