@@ -8,7 +8,7 @@ const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const inlineScripts = [...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)]
+const inlineScripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)]
   .map(match => match[1]).filter(source => source.trim());
 assert.equal(inlineScripts.length, 1, 'expected one inline dashboard script');
 const dashboardSource = inlineScripts[0];
@@ -37,7 +37,7 @@ function createHarness() {
     constructor(...args) { super(...(args.length ? args : [2026, 10, 25])); }
     static now() { return new Date(2026, 10, 25).getTime(); }
   }
-  const instrumented = dashboardSource.replace(/\\nload\\(\\);\\s*$/, `
+  const instrumented = dashboardSource.replace(/\nload\(\);\s*$/, `
 globalThis.__lifeosTest = {
   setData(d) { data = d; filters(); },
   setFilter(y = '', q = '', m = '') {
