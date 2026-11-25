@@ -170,3 +170,22 @@ test('zero previous-period baseline produces N/A percentage rather than division
   assert.equal(sleep.previous, 0);
   assert.equal(sleep.change, null);
 });
+
+test('All Years plus quarter compares with the immediately preceding quarter', () => {
+  const api = createHarness();
+  api.setData({
+    daily: [
+      { Date: '2026-10-01', 'Sleep Minutes': 120 },
+      { Date: '2026-07-01', 'Sleep Minutes': 60 },
+      { Date: '2025-10-01', 'Sleep Minutes': 30 }
+    ],
+    study: [], podcast: [], health: []
+  });
+  api.setFilter('', 'Q4', '');
+  const sleep = api.comparison()[0];
+  assert.equal(sleep.current, 2);
+  assert.equal(sleep.previous, 1);
+  assert.match(sleep.detail, /Jul 2026/);
+  assert.doesNotMatch(sleep.detail, /Oct 2025/);
+});
+
