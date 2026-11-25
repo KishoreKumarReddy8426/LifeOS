@@ -81,6 +81,28 @@ test('podcast rows with entertainment-only content do not inflate the podcast co
   assert.equal(api.kpiValues([], [], [entertainmentOnly], [])[3], 0);
 });
 
+test('monthly and rolling-period podcast comparisons exclude empty dated rows', () => {
+  const api = createHarness();
+  const blank = date => ({ Date: date, 'Podcast Host': '', 'Podcast Name': '', 'Podcast Episode': '', Minutes: '', Hours: '', 'Entertainment Min': 30 });
+  const named = (date, name) => ({ Date: date, 'Podcast Host': '', 'Podcast Name': name, 'Podcast Episode': '', Minutes: '', Hours: '' });
+  api.setData({ daily: [], study: [], podcast: [
+    blank('2025-12-01'), named('2025-12-02', 'Prior A'), named('2025-12-03', 'Prior B'),
+    blank('2026-01-01'), named('2026-01-02', 'Current A'),
+    blank('2026-11-12'), named('2026-11-13', 'Rolling prior'),
+    blank('2026-11-19'), named('2026-11-20', 'Rolling current')
+  ], health: [] });
+  api.setFilter('2026', '', '1');
+  const month = api.comparison()[3];
+  assert.equal(month.current, 1);
+  assert.equal(month.previous, 2);
+  assert.equal(month.change, -50);
+  api.setQuick('7D');
+  const rolling = api.comparison()[3];
+  assert.equal(rolling.current, 1);
+  assert.equal(rolling.previous, 1);
+  assert.equal(rolling.change, 0);
+});
+
 test('dashboard script parses and the real calculation functions load', () => {
   assert.equal(typeof createHarness().comparison, 'function');
 });
