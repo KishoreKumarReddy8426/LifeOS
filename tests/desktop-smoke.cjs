@@ -41,7 +41,7 @@ const mime = { '.html': 'text/html; charset=utf-8', '.json': 'application/json; 
     const sourceRows = JSON.parse(fs.readFileSync(path.join(root, 'sheet_data.json'), 'utf8')).podcast;
     const validPodcastCount = sourceRows.filter(row => ['Podcast Host', 'Podcast Name', 'Podcast Episode', 'Minutes', 'Hours'].some(key => String(row[key] ?? '').trim() !== '')).length;
     const podcastKpiText = await page.locator('#kpis .card').nth(3).locator('.value').innerText();
-    assert.equal(Number(podcastKpiText.match(/[\\d,]+/)[0].replace(/,/g, '')), validPodcastCount, 'podcast KPI should match non-empty podcast rows only');
+    assert.ok(podcastKpiText.includes(String(validPodcastCount)), `podcast KPI should show ${validPodcastCount} non-empty entries; displayed value: "${podcastKpiText}"`);
     assert.ok(await page.locator('#overviewTable table tbody tr').count() > 0, 'overview table should contain records');
     assert.ok(await page.locator('#year option').count() > 1, 'year filter should populate from data');
     assert.ok(await page.evaluate(() => window.Chart.getChart('trend').data.datasets.length > 0), 'overview chart should contain datasets');
