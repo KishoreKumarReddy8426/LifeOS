@@ -92,6 +92,49 @@ const mime = { '.html': 'text/html; charset=utf-8', '.json': 'application/json; 
     assert.ok(await page.locator('body').evaluate(el => el.classList.contains('navClosed')), 'sidebar toggle should collapse navigation');
     await page.locator('#navToggle').click();
 
+    // Exercise real phone and tablet viewports in fresh browser contexts.
+    for (const viewport of [
+      { name: 'small-phone', width: 320, height: 740 },
+      { name: 'phone', width: 390, height: 844 },
+      { name: 'tablet', width: 768, height: 1024 }
+    ]) {
+      const mobile = await browser.newPage({ viewport: { width: viewport.width, height: viewport.height }, deviceScaleFactor: 1 });
+      const mobileErrors = [];
+      mobile.on('pageerror', error => mobileErrors.push(error.message));
+      const mobileResponse = await mobile.goto('http://127.0.0.1:4173/', { waitUntil: 'domcontentloaded' });
+      assert.equal(mobileResponse.status(), 200, viewport.name + ': dashboard should load');
+      await mobile.waitForFunction(() => document.querySelector('#status')?.textContent.includes('Live Sync Active'), null, { timeout: 60000 });
+      await mobile.waitForFunction(() => window.Chart && window.Chart.getChart('trend'), null, { timeout: 30000 });
+
+      const layout = await mobile.evaluate(() => ({
+        viewport: document.documentElement.clientWidth,
+        document: document.documentElement.scrollWidth,
+        body: document.body.scrollWidth,
+        cards: getComputedStyle(document.querySelector('#kpis')).gridTemplateColumns,
+        nav: document.querySelector('.tabs').getBoundingClientRect().toJSON(),
+        header: document.querySelector('.head').getBoundingClientRect().toJSON(),
+        chart: document.querySelector('#trend').getBoundingClientRect().toJSON(),
+        tableWrap: document.querySelector('#overviewTable').getBoundingClientRect().toJSON()
+      }));
+      assert.ok(layout.document <= layout.viewport + 1, viewport.name + ': page must not have horizontal overflow (' + layout.document + ' > ' + layout.viewport + ')');
+      assert.ok(layout.body <= layout.viewport + 1, viewport.name + ': body must not have horizontal overflow');
+      assert.ok(layout.nav.width > 0 && layout.nav.height > 0, viewport.name + ': navigation should remain visible');
+      assert.ok(layout.header.width <= layout.viewport + 1, viewport.name + ': header should fit viewport');
+      assert.ok(layout.chart.width > 0 && layout.chart.width <= layout.viewport + 1, viewport.name + ': chart should fit viewport');
+      assert.ok(layout.tableWrap.width <= layout.viewport + 1, viewport.name + ': table container should fit viewport');
+      assert.equal(await mobile.locator('#kpis .card').count(), 4, viewport.name + ': all KPI cards should remain visible');
+      await mobile.locator('#period').selectOption('Quarterly');
+      assert.match(await mobile.locator('#trendTitle').textContent(), /Quarterly/, viewport.name + ': period filter should remain usable');
+      await mobile.locator('#navToggle').click();
+      assert.ok(await mobile.locator('body').evaluate(el => el.classList.contains('navClosed')), viewport.name + ': navigation toggle should work');
+      await mobile.locator('#navToggle').click();
+      await mobile.screenshot({ path: path.join(root, 'artifacts', viewport.name + '.png'), fullPage: true });
+      assert.deepEqual(mobileErrors, [], viewport.name + ': no uncaught browser errors');
+      await mobile.close();
+      console.log('PASS: ' + viewport.name + ' responsive layout, navigation, filters and charts (' + viewport.width + 'px)');
+    }
+    console.log('MOBILE_RESPONSIVE_TESTS_PASSED');
+
     await page.screenshot({ path: path.join(root, 'artifacts', 'desktop-dashboard.png'), fullPage: true });
     assert.deepEqual(pageErrors, [], 'page should not throw uncaught JavaScript errors');
     assert.deepEqual(consoleErrors, [], 'browser console should be free of errors');
