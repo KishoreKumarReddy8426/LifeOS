@@ -189,3 +189,15 @@ test('All Years plus quarter compares with the immediately preceding quarter', (
   assert.doesNotMatch(sleep.detail, /Oct 2025/);
 });
 
+
+test('All Years plus month chart comparison uses the same month last year', () => {
+  const api = createHarness();
+  api.setFilter('', '', '11');
+  const current = api.selectedBounds();
+  const previous = api.priorBounds(current);
+  assert.equal(previous[0].getFullYear(), 2025);
+  assert.equal(previous[0].getMonth(), 10);
+  assert.equal(previous[1].getFullYear(), 2025);
+  assert.equal(previous[1].getMonth(), 10);
+  assert.equal(previous[1].getDate(), 26);
+});
