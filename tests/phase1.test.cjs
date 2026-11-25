@@ -201,3 +201,19 @@ test('All Years plus month chart comparison uses the same month last year', () =
   assert.equal(previous[1].getMonth(), 10);
   assert.equal(previous[1].getDate(), 26);
 });
+
+test('month and quarter filters without a year scope data to the current year', () => {
+  const api = createHarness();
+  api.setData({
+    daily: [
+      { Date: '2026-11-01', 'Sleep Minutes': 60 },
+      { Date: '2025-11-01', 'Sleep Minutes': 120 },
+      { Date: '2026-10-01', 'Sleep Minutes': 180 }
+    ],
+    study: [], podcast: [], health: []
+  });
+  api.setFilter('', '', '11');
+  assert.deepEqual(api.filtered('daily').map(r => r.Date), ['2026-11-01']);
+  api.setFilter('', 'Q4', '');
+  assert.deepEqual(api.filtered('daily').map(r => r.Date), ['2026-11-01', '2026-10-01']);
+});
