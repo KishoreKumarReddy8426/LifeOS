@@ -93,6 +93,19 @@ const mime = { '.html': 'text/html; charset=utf-8', '.json': 'application/json; 
     // Return to the overview before exercising its table controls; the tracker tabs hide it.
     await page.locator('.tab[data-tab="overview"]').click();
     await page.locator('#overviewTable .tableTools input').waitFor({ state: 'visible' });
+    const sleepColumn = page.locator('#overviewTable thead th').nth(1);
+    const sortedValues = async () => page.locator('#overviewTable tbody tr').evaluateAll(rows =>
+      rows.map(row => Number(row.cells[1].textContent.replace(/,/g, '')))
+    );
+    await sleepColumn.click();
+    const ascending = await sortedValues();
+    assert.deepEqual(ascending, [...ascending].sort((a, b) => a - b), 'numeric table columns should sort ascending');
+    await sleepColumn.click();
+    const descending = await sortedValues();
+    assert.deepEqual(descending, [...descending].sort((a, b) => b - a), 'numeric table columns should sort descending');
+    assert.ok(await page.locator('#overviewTable td.highCell').count() > 0,
+      'conditional formatting should mark the highest numeric value');
+    console.log('PASS: table numeric sorting and conditional formatting');
     await page.locator('#overviewTable .tableTools input').fill('no-such-lifeos-row-xyz');
     assert.equal(await page.locator('#overviewTable table tbody tr:visible').count(), 0, 'table search should filter rows');
     await page.locator('#overviewTable .tableTools input').fill('');
