@@ -10,8 +10,9 @@ const mime = { '.html': 'text/html; charset=utf-8', '.json': 'application/json; 
 (async () => {
   const server = http.createServer((req, res) => {
     const pathname = decodeURIComponent(new URL(req.url, 'http://127.0.0.1').pathname);
-    const file = path.resolve(root, '.' + pathname);
-    if (!file.startsWith(root + path.sep) && file !== path.join(root, 'index.html')) {
+    const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\\/+/, '');
+    const file = path.resolve(root, relative);
+    if (!file.startsWith(root + path.sep)) {
       res.writeHead(403).end('Forbidden'); return;
     }
     fs.readFile(file, (err, body) => {
