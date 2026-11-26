@@ -95,8 +95,8 @@ function table(rs,id,p){if(!rs.length){$(id).innerHTML='<div class="empty">No re
  const allKeys=[...new Set(rs.flatMap(r=>Object.keys(r)))];
  const findKey=name=>allKeys.find(k=>norm(k)===norm(name));
  const movieKey=findKey('movie name'),languageKey=findKey('language'),yearKey=findKey('year')||findKey('unnamed: 10');
- const podcastFields=['Podcast Host','Podcast Name','Podcast Episode'].map(findKey).filter(Boolean);
- const cols=allKeys.filter(k=>norm(k)!=='date'&&!isHoursText(k)&&!(isPodcast&&(/^unnamed:/i.test(k)||norm(k).startsWith('entertainment')||[movieKey,languageKey,yearKey].includes(k)))&&(numeric(k)||isMinutes(k)));
+ const podcastFields=isPodcast?['Podcast Host','Podcast Name','Podcast Episode'].map(name=>findKey(name)||name):[];
+ const cols=allKeys.filter(k=>norm(k)!=='date'&&!isHoursText(k)&&!(isPodcast&&(/^unnamed:/i.test(k)||norm(k).startsWith('entertainment')||[movieKey,languageKey,yearKey].includes(k)||podcastFields.includes(k)))&&(numeric(k)||isMinutes(k)));
  if(isPodcast)cols.push(...podcastFields);
  const label=k=>{if(k==='Minutes')return id==='studyTable'?'Study (hrs)':'Podcast (hrs)';if(k==='Article / Blogs')return 'Article / Blogs (hrs)';if(k==='Sleep Minutes')return 'Sleep (hrs)';if(k==='Office Min'||k==='Office Minutes')return 'Office (hrs)';if(k==='Exercise Min'||k==='Exercise Minutes')return 'Exercise (hrs)';if(k==='Entertainment Min'||k==='Entertainment Minutes')return 'Entertainment (hrs)';return k};
  const total=(items,k)=>items.reduce((sum,r)=>sum+n(r[k]),0);
@@ -106,7 +106,7 @@ function table(rs,id,p){if(!rs.length){$(id).innerHTML='<div class="empty">No re
  let groups=bucket(rs,p),out='<table><thead><tr><th>Period</th>'+cols.map(k=>'<th>'+label(k)+'</th>').join('')+(isEntertainment?'<th>Movie Name (COUNT)</th><th>Language (COUNTD)</th><th>Year (COUNTD)</th>':'')+'</tr></thead><tbody>';
  const summary=items=>isEntertainment?'<td>'+fmt(items.filter(r=>String(r['Movie Name']??'').trim()).length)+'</td><td>'+fmt(new Set(items.map(r=>norm(r.Language)).filter(Boolean)).size)+'</td><td>'+fmt(new Set(items.map(r=>norm(r.Year||r['Unnamed: 10'])).filter(Boolean)).size)+'</td>':'';
  groups.forEach(([periodLabel,items])=>{out+='<tr><td>'+periodLabel+'</td>'+cols.map(k=>'<td>'+cell(items,k)+'</td>').join('')+summary(items)+'</tr>'});
- out+='</tbody><tfoot><tr><td>Grand Total</td>'+cols.map(k=>'<td>'+cell(rs,k)+'</td>').join('')+summary(rs)+'</tr></tfoot></table>';$(id).innerHTML=out}
+ out+='</tbody><tfoot><tr><td>Grand Total</td>'+cols.map(k=>'<td>'+(isPodcast&&podcastFields.includes(k)?'':cell(rs,k))+'</td>').join('')+summary(rs)+'</tr></tfoot></table>';$(id).innerHTML=out}
 
 function overviewTable(p){
  const sources={daily:filtered('daily'),study:filtered('study'),podcast:filtered('podcast'),health:filtered('health')};
