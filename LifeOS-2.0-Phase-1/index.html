@@ -24,6 +24,7 @@
  <div class="panel"><h2>Runtime buckets</h2><div id="entBuckets"></div></div>
 </div>
 <div class="panel"><h2>Entertainment trend</h2><div class="chartbox"><canvas id="entChart"></canvas></div></div>
+<div class="panel"><h2>Add a movie</h2><div class="tableTools" id="entAddForm"><input id="entMovieName" placeholder="Movie name"><input id="entHours" type="number" min="0" step="1" placeholder="Hours"><input id="entMins" type="number" min="0" max="59" step="1" placeholder="Mins"><input id="entYear" type="number" min="1888" max="2100" placeholder="Year"><input id="entLang" placeholder="Language"><button id="entAdd">Add</button></div><details><summary>Bulk paste</summary><p class="muted">Paste one movie per line: Movie name, hours, minutes, year, language</p><textarea id="entBulk" rows="4" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px"></textarea><button id="entBulkAdd">Add pasted movies</button></details></div>
 <div class="panel"><h2>Entertainment records</h2><div class="tableTools"><input id="entSearch" placeholder="Search movies..." aria-label="Search movies"><select id="entLanguageFilter"><option value="">All languages</option></select></div><div class="tablewrap" id="entTable"></div></div>
 </section>
 <section id="health" class="section"><div class="panel"><h2>Health Tracker · Trend</h2><div id="healthChips" class="chips"></div><div class="chartbox"><canvas id="healthChart"></canvas></div></div><div class="panel"><h2>Health Tracker · Table</h2><div class="tablewrap" id="healthTable"></div></div></section>
@@ -177,7 +178,7 @@ function entertainmentRows(){
   return has('Movie Name')||has('Entertainment Min')||has('Entertainment Minutes')||has('Entertainment Hours');
  });
  let local=[];try{local=JSON.parse(localStorage.getItem('lifeos2.entertainment')||'[]')}catch(e){}
- return base.map(r=>({movie:String(r['Movie Name']||'').trim(),hours:metricValue(r,'entertainment'),year:String(r.Year||r['Unnamed: 10']||''),language:String(r.Language||'').trim(),date:date(r)})).filter(x=>x.movie||x.hours>0).concat(local.filter(x=>x.movie));
+ return base.map(r=>({movie:String(r['Movie Name']||'').trim(),hours:metricValue(r,'entertainment'),year:String(r.Year||r['Unnamed: 10']||''),language:String(r.Language||'').trim(),date:date(r),source:'sheet'})).filter(x=>x.movie||x.hours>0).concat(local.filter(x=>x.movie).map((x,i)=>({...x,source:'local',localIndex:i})));
 }
 function entDuration(h){if(h==null||!Number.isFinite(Number(h)))return '—';let m=Math.round(Number(h)*60);return Math.floor(m/60)+'h '+String(m%60)+'m'}
 function entBars(id,items){
@@ -197,7 +198,7 @@ function renderEntertainment(){
  const sel=$('entLanguageFilter'),keep=sel.value;sel.innerHTML='<option value="">All languages</option>'+[...langs.keys()].sort().map(x=>'<option>'+x+'</option>').join('');sel.value=keep;
  const search=($('entSearch').value||'').toLowerCase(),lang=sel.value;
  const shown=movies.filter(x=>(!lang||x.language===lang)&&[x.movie,x.language,x.year].join(' ').toLowerCase().includes(search));
- $('entTable').innerHTML=shown.length?'<table><thead><tr><th>MOVIE</th><th>RUNTIME</th><th>YEAR</th><th>LANGUAGE</th></tr></thead><tbody>'+shown.map(x=>'<tr><td>'+x.movie+'</td><td>'+entDuration(x.hours)+'</td><td>'+x.year+'</td><td>'+x.language+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">No entertainment records for this filter.</div>';
+ $('entTable').innerHTML=shown.length?'<table><thead><tr><th>MOVIE</th><th>RUNTIME</th><th>YEAR</th><th>LANGUAGE</th><th></th></tr></thead><tbody>'+shown.map(x=>'<tr><td>'+x.movie+'</td><td>'+entDuration(x.hours)+'</td><td>'+x.year+'</td><td>'+x.language+'</td><td>'+(x.source==='local'?'<button data-delete-ent="'+x.localIndex+'">×</button>':'')+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">No entertainment records for this filter.</div>';
  const byMonth=bucket(rs.filter(x=>x.date),$('period').value),labels=byMonth.map(x=>x[0]),values=byMonth.map(([p,items])=>items.reduce((a,x)=>a+(x.hours||0),0));
  chart('entChart','bar',labels,[{label:'Entertainment (hrs)',data:values}]);
 }
