@@ -197,22 +197,10 @@ function renderEntertainment(){
  const sel=$('entLanguageFilter'),keep=sel.value;sel.innerHTML='<option value="">All languages</option>'+[...langs.keys()].sort().map(x=>'<option>'+x+'</option>').join('');sel.value=keep;
  const search=($('entSearch').value||'').toLowerCase(),lang=sel.value;
  const shown=movies.filter(x=>(!lang||x.language===lang)&&[x.movie,x.language,x.year].join(' ').toLowerCase().includes(search));
- $('entTable').innerHTML=shown.length?'<table><thead><tr><th>MOVIE</th><th>RUNTIME</th><th>YEAR</th><th>LANGUAGE</th><th></th></tr></thead><tbody>'+shown.map(x=>'<tr><td>'+x.movie+'</td><td>'+entDuration(x.hours)+'</td><td>'+x.year+'</td><td>'+x.language+'</td><td>'+(x.source==='local'?'<button data-delete-ent="'+x.localIndex+'">×</button>':'')+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">No entertainment records for this filter.</div>';
+ $('entTable').innerHTML=shown.length?'<table><thead><tr><th>MOVIE</th><th>RUNTIME</th><th>YEAR</th><th>LANGUAGE</th></tr></thead><tbody>'+shown.map(x=>'<tr><td>'+x.movie+'</td><td>'+entDuration(x.hours)+'</td><td>'+x.year+'</td><td>'+x.language+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">No entertainment records for this filter.</div>';
  const byMonth=bucket(rs.filter(x=>x.date),$('period').value),labels=byMonth.map(x=>x[0]),values=byMonth.map(([p,items])=>items.reduce((a,x)=>a+(x.hours||0),0));
  chart('entChart','bar',labels,[{label:'Entertainment (hrs)',data:values}]);
 }
-
-function saveEntertainment(items){try{localStorage.setItem('lifeos2.entertainment',JSON.stringify(items))}catch(e){alert('Could not save entertainment records in this browser.');}}
-function addEntertainment(movie,hours,mins,year,language){
- movie=String(movie||'').trim();hours=Number(hours||0);mins=Number(mins||0);
- if(!movie){alert('Enter a movie name.');return false}
- if(hours<0||mins<0||mins>59||!Number.isFinite(hours+mins)||hours+mins===0){alert('Enter a valid runtime.');return false}
- let items=[];try{items=JSON.parse(localStorage.getItem('lifeos2.entertainment')||'[]')}catch(e){}
- items.push({movie,hours:hours+mins/60,year:String(year||''),language:String(language||'').trim()});saveEntertainment(items);return true;
-}
-$('entAdd').onclick=()=>{if(addEntertainment($('entMovieName').value,$('entHours').value,$('entMins').value,$('entYear').value,$('entLang').value)){['entMovieName','entHours','entMins','entYear','entLang'].forEach(id=>$(id).value='');renderEntertainment()}};
-$('entBulkAdd').onclick=()=>{let count=0;for(const line of $('entBulk').value.split(/\r?\n/)){if(!line.trim())continue;let [name,hours,mins,year,language]=line.split(/[,\t]/).map(x=>x.trim());if(addEntertainment(name,hours,mins,year,language))count++}if(count){$('entBulk').value='';renderEntertainment()}};
-$('entTable').addEventListener('click',e=>{let b=e.target.closest('[data-delete-ent]');if(!b)return;let items=[];try{items=JSON.parse(localStorage.getItem('lifeos2.entertainment')||'[]')}catch(e){}items.splice(Number(b.dataset.deleteEnt),1);saveEntertainment(items);renderEntertainment()});
 
 $('entSearch').oninput=renderEntertainment;$('entLanguageFilter').onchange=renderEntertainment;
 
