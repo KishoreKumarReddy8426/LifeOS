@@ -102,7 +102,7 @@ function table(rs,id,p){if(!rs.length){$(id).innerHTML='<div class="empty">No re
  const total=(items,k)=>items.reduce((sum,r)=>sum+n(r[k]),0);
  const duration=k=>isMinutes(k);
  const formatDurationMinutes=minutes=>{let t=Math.round(minutes),sign=t<0?'-':'';t=Math.abs(t);return sign+Math.floor(t/60)+'.'+String(t%60).padStart(2,'0')};
- const cell=(items,k)=>isPodcast&&podcastFields.includes(k)?fmt(new Set(items.map(r=>String(r[k]??'').trim()).filter(Boolean)).size):duration(k)?formatDurationMinutes(total(items,k)):fmt(total(items,k));
+ const cell=(items,k)=>isPodcast&&podcastFields.includes(k)?[...new Set(items.map(r=>String(r[k]??'').trim()).filter(Boolean))].join(', ')||'—':duration(k)?formatDurationMinutes(total(items,k)):fmt(total(items,k));
  let groups=bucket(rs,p),out='<table><thead><tr><th>Period</th>'+cols.map(k=>'<th>'+label(k)+'</th>').join('')+(isEntertainment?'<th>Movie Name (COUNT)</th><th>Language (COUNTD)</th><th>Year (COUNTD)</th>':'')+'</tr></thead><tbody>';
  const summary=items=>isEntertainment?'<td>'+fmt(items.filter(r=>String(r['Movie Name']??'').trim()).length)+'</td><td>'+fmt(new Set(items.map(r=>norm(r.Language)).filter(Boolean)).size)+'</td><td>'+fmt(new Set(items.map(r=>norm(r.Year||r['Unnamed: 10'])).filter(Boolean)).size)+'</td>':'';
  groups.forEach(([periodLabel,items])=>{out+='<tr><td>'+periodLabel+'</td>'+cols.map(k=>'<td>'+cell(items,k)+'</td>').join('')+summary(items)+'</tr>'});
@@ -200,7 +200,7 @@ function renderEntertainment(){
  const sel=$('entLanguageFilter'),keep=sel.value;sel.innerHTML='<option value="">All languages</option>'+[...langs.keys()].sort().map(x=>'<option>'+x+'</option>').join('');sel.value=keep;
  const search=($('entSearch').value||'').toLowerCase(),lang=sel.value;
  const shown=movies.filter(x=>(!lang||x.language===lang)&&[x.movie,x.language,x.year].join(' ').toLowerCase().includes(search));
- $('entTable').innerHTML=shown.length?'<table><thead><tr><th>MOVIE</th><th>RUNTIME</th><th>YEAR</th><th>LANGUAGE</th></tr></thead><tbody>'+shown.map(x=>'<tr><td>'+x.movie+'</td><td>'+entDuration(x.hours)+'</td><td>'+x.year+'</td><td>'+x.language+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">No entertainment records for this filter.</div>';
+ $('entTable').innerHTML=shown.length?'<table><thead><tr><th>MOVIE</th><th>RUNTIME</th><th>YEAR</th><th>LANGUAGE</th><th>Movie Name (COUNT)</th><th>Language (COUNTD)</th><th>Year (COUNTD)</th></tr></thead><tbody>'+shown.map(x=>'<tr><td>'+x.movie+'</td><td>'+entDuration(x.hours)+'</td><td>'+x.year+'</td><td>'+x.language+'</td><td>1</td><td>'+(x.language?1:0)+'</td><td>'+(x.year?1:0)+'</td></tr>').join('')+'</tbody><tfoot><tr><td>Grand Total</td><td>'+entDuration(shown.reduce((a,x)=>a+(x.hours||0),0))+'</td><td></td><td></td><td>'+shown.filter(x=>x.movie).length+'</td><td>'+new Set(shown.map(x=>x.language).filter(Boolean)).size+'</td><td>'+new Set(shown.map(x=>x.year).filter(Boolean)).size+'</td></tr></tfoot></table>':'<div class="empty">No entertainment records for this filter.</div>';
  const byMonth=bucket(rs.filter(x=>x.date),$('period').value),labels=byMonth.map(x=>x[0]),values=byMonth.map(([p,items])=>items.reduce((a,x)=>a+(x.hours||0),0));
  chart('entChart','bar',labels,[{label:'Entertainment (hrs)',data:values}]);
 }
