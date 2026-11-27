@@ -86,7 +86,7 @@ function originalComparison(now=new Date()){
 }
 function oldCard(label,value,unit,comparison){let display=unit==='hrs'?fmtHoursMinutes(value):fmt(value);let c=comparison?.change,rounded=c==null?null:Math.round(c*100)/100;let tone=rounded>0?'up':rounded<0?'down':'neutral';let delta=rounded==null?'N/A':(rounded>0?'▲ +':rounded<0?'▼ ':'— ')+rounded.toFixed(2)+'%';return '<div class="card"><div class="metric">'+label+'</div><div class="value">'+display+' <small class="muted">'+unit+'</small></div><div class="kpi-change '+tone+'">'+delta+'</div><div class="kpi-period">'+(comparison?.detail||'No comparable period')+'</div></div>'}
 const chartPalette={'Sleep (hrs)':'#38bdf8','Office (hrs)':'#fb923c','Exercise (hrs)':'#4ade80','Study (hrs)':'#a78bfa','Articles / Blogs (hrs)':'#facc15','Article / Blogs (hrs)':'#facc15','Podcast (hrs)':'#f472b6','Entertainment (hrs)':'#2dd4bf','Steps':'#60a5fa','Distance (km)':'#c084fc','Stairs climbed':'#f97316','Records':'#14b8a6'};
-function chart(id,type,labels,datasets){if(charts[id])charts[id].destroy();let styled=datasets.map(ds=>{let c=ds.borderColor||chartPalette[ds.label]||'#38bdf8';return {...ds,borderColor:c,backgroundColor:type==='bar'?c:'transparent',pointBackgroundColor:c,pointBorderColor:c,pointHoverBackgroundColor:c,borderWidth:3,pointRadius:ds.borderDash?0:type==='line'?3:0,pointHoverRadius:5,fill:false}});let hourChart=datasets.some(ds=>/\(hrs\)/i.test(ds.label||''));charts[id]=new Chart($(id),{type,data:{labels,datasets:styled},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:getComputedStyle(document.body).getPropertyValue('--text').trim()||'#edf4fc'}},tooltip:{callbacks:{label:ctx=>hourChart?(ctx.dataset.label+': '+displayValue(ctx.parsed.y,'hrs')):(ctx.dataset.label+': '+fmt(ctx.parsed.y))}}},scales:{x:{ticks:{color:getComputedStyle(document.body).getPropertyValue('--muted').trim()||'#9aacc2'},grid:{color:getComputedStyle(document.body).getPropertyValue('--line').trim()||'#293b53'}},y:{beginAtZero:true,ticks:{color:getComputedStyle(document.body).getPropertyValue('--muted').trim()||'#9aacc2',callback:value=>hourChart?displayValue(value,'hrs'):value},grid:{color:getComputedStyle(document.body).getPropertyValue('--line').trim()||'#293b53'}}}}})}
+function chart(id,type,labels,datasets){if(typeof Chart==='undefined'){if(charts[id]){try{charts[id].destroy()}catch(e){}delete charts[id]}let canvas=$(id);if(canvas&&canvas.parentElement)canvas.parentElement.innerHTML='<div class="empty">Charts unavailable because the chart library could not be loaded. Refresh the page to retry.</div>';return}if(charts[id]){try{charts[id].destroy()}catch(e){}}let styled=datasets.map(ds=>{let c=ds.borderColor||chartPalette[ds.label]||'#38bdf8';return {...ds,borderColor:c,backgroundColor:type==='bar'?c:'transparent',pointBackgroundColor:c,pointBorderColor:c,pointHoverBackgroundColor:c,borderWidth:3,pointRadius:ds.borderDash?0:type==='line'?3:0,pointHoverRadius:5,fill:false}});let hourChart=datasets.some(ds=>/\(hrs\)/i.test(ds.label||''));charts[id]=new Chart($(id),{type,data:{labels,datasets:styled},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:getComputedStyle(document.body).getPropertyValue('--text').trim()||'#edf4fc'}},tooltip:{callbacks:{label:ctx=>hourChart?(ctx.dataset.label+': '+displayValue(ctx.parsed.y,'hrs')):(ctx.dataset.label+': '+fmt(ctx.parsed.y))}}},scales:{x:{ticks:{color:getComputedStyle(document.body).getPropertyValue('--muted').trim()||'#9aacc2'},grid:{color:getComputedStyle(document.body).getPropertyValue('--line').trim()||'#293b53'}},y:{beginAtZero:true,ticks:{color:getComputedStyle(document.body).getPropertyValue('--muted').trim()||'#9aacc2',callback:value=>hourChart?displayValue(value,'hrs'):value},grid:{color:getComputedStyle(document.body).getPropertyValue('--line').trim()||'#293b53'}}}}})}
 function table(rs,id,p){if(!rs.length){$(id).innerHTML='<div class="empty">No records for this filter.</div>';return}
  const numeric=k=>rs.some(r=>r[k]!==''&&r[k]!==null&&r[k]!==undefined&&Number.isFinite(Number(String(r[k]).replace(/,/g,''))));
  const isHoursText=k=>/hours?/i.test(k);
@@ -158,7 +158,47 @@ function renderPodcastReport(records,period){
  $('podcastDetails').innerHTML=sorted.length?'<table><thead><tr><th>Date</th><th>Podcast Host</th><th>Podcast Name</th><th>Podcast Episode</th><th>Listening Time</th></tr></thead><tbody>'+sorted.map(r=>'<tr><td>'+dateLabel(r)+'</td><td>'+reportEscape(r['Podcast Host']||'—')+'</td><td>'+reportEscape(r['Podcast Name']||'—')+'</td><td>'+reportEscape(r['Podcast Episode']||'—')+'</td><td>'+displayValue(metricValue(r,'podcast'),'hrs')+'</td></tr>').join('')+'</tbody><tfoot><tr><td>Grand Total</td><td></td><td></td><td></td><td>'+displayValue(total,'hrs')+'</td></tr></tfoot></table>':'<div class="empty">No podcast episodes for this filter.</div>';
 }
 function filters(){let ds=TRACKERS.flatMap(([k])=>rows(k).map(date).filter(Boolean));$('year').innerHTML='<option value="">All Years</option>'+[...new Set(ds.map(d=>d.getFullYear()))].sort((a,b)=>b-a).map(y=>'<option>'+y+'</option>').join('');$('month').innerHTML='<option value="">All Months</option>'+Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">'+new Date(2000,i,1).toLocaleString(undefined,{month:'long'})+'</option>').join('')}
-async function load(){ $('status').className='status syncing';$('status').textContent='Syncing…';try{let r;try{r=await fetch(DATA+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('Pages data HTTP '+r.status)}catch(primaryError){r=await fetch('https://raw.githubusercontent.com/KishoreKumarReddy8426/LifeOS/main/sheet_data.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('Pages and GitHub data requests failed ('+primaryError.message+'; GitHub HTTP '+r.status+')')}const nextData=await r.json();if(!nextData||typeof nextData!=='object')throw Error('Data file did not contain valid JSON');data=nextData;filters();render();const updated=new Date();$('lastUpdated').textContent='Last updated: '+updated.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});$('lastUpdated').title='Data successfully refreshed at '+updated.toLocaleString();$('status').className='status';$('status').textContent='Live Sync Active'}catch(e){$('status').className='status error';$('status').textContent='Sync unavailable: '+(e&&e.message?e.message:'unknown error')}}
+let loading=false;
+async function fetchValidatedData(url){
+ const response=await fetch(url+'?v='+Date.now(),{cache:'no-store'});
+ if(!response.ok)throw Error('HTTP '+response.status);
+ let payload;try{payload=await response.json()}catch(e){throw Error('The data endpoint returned invalid JSON')}
+ if(!payload||typeof payload!=='object'||Array.isArray(payload))throw Error('Data must be a JSON object');
+ for(const name of ['daily','study','podcast','health']){
+  if(!Array.isArray(payload[name]))throw Error('Data is missing the expected "'+name+'" records array');
+  if(payload[name].some(row=>!row||typeof row!=='object'||Array.isArray(row)))throw Error('The "'+name+'" records contain an invalid row');
+ }
+ return payload;
+}
+async function load(){
+ if(loading)return;
+ loading=true;$('refresh').disabled=true;$('status').className='status syncing';$('status').textContent='Syncing…';
+ const previousData=data;
+ try{
+  let nextData;
+  try{nextData=await fetchValidatedData(DATA)}
+  catch(primaryError){
+   try{nextData=await fetchValidatedData('https://raw.githubusercontent.com/KishoreKumarReddy8426/LifeOS/main/sheet_data.json')}
+   catch(fallbackError){throw Error('Both data sources failed. Pages: '+primaryError.message+'. GitHub: '+fallbackError.message)}
+  }
+  data=nextData;
+  try{filters();render()}
+  catch(renderError){
+   data=previousData;
+   if(Object.keys(previousData).length){try{filters();render()}catch(restoreError){}}
+   throw Error('New data was received, but the dashboard could not render: '+(renderError&&renderError.message?renderError.message:'unknown rendering error')+'. Previous data has been retained where available.')
+  }
+  const updated=new Date();
+  $('lastUpdated').textContent='Last updated: '+updated.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});
+  $('lastUpdated').title='Last successful data refresh at '+updated.toLocaleString();
+  $('status').className=typeof Chart==='undefined'?'status error':'status';
+  $('status').textContent=typeof Chart==='undefined'?'Data synced · Charts unavailable':'Live Sync Active';
+ }catch(e){
+  $('status').className='status error';
+  $('status').textContent=Object.keys(previousData).length?'Refresh failed — previous data retained: ':'Sync unavailable: ';
+  $('status').textContent+=(e&&e.message?e.message:'unknown error');
+ }finally{loading=false;$('refresh').disabled=false}
+}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
 ['year','quarter','month','period'].forEach(id=>$(id).onchange=render);$('reset').onclick=()=>{$('year').value='';$('quarter').value='';$('month').value='';$('period').value='Monthly';render()};$('refresh').onclick=load;$('theme').onclick=()=>{document.body.classList.toggle('light');$('theme').textContent=document.body.classList.contains('light')?'🌙 Dark':'☀️ Light'};
 // Phase 1: presentation and personal goals
@@ -206,7 +246,8 @@ function entBars(id,items){
 const entFallbackColors=['#fb923c','#facc15','#60a5fa','#c084fc','#14b8a6','#f97316','#e879f9','#84cc16'];
 function entLangColor(name,i){return entLangColors[name]||entFallbackColors[i%entFallbackColors.length]}
 function entStackedChart(groups){
- if(charts.entChart)charts.entChart.destroy();
+ if(typeof Chart==='undefined'){if(charts.entChart){try{charts.entChart.destroy()}catch(e){}delete charts.entChart}const host=$('entChart');if(host&&host.parentElement)host.parentElement.innerHTML='<div class="empty">Charts unavailable because the chart library could not be loaded. Refresh the page to retry.</div>';return}
+ if(charts.entChart){try{charts.entChart.destroy()}catch(e){}}
  const css=v=>getComputedStyle(document.body).getPropertyValue(v).trim(),text=css('--text')||'#edf4fc',muted=css('--muted')||'#9aacc2',line=css('--line')||'#293b53';
  let labels=groups.map(g=>g[0]),datasets;
  const totals=new Map();
