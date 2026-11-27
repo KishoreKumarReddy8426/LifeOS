@@ -236,14 +236,6 @@ function renderEntertainment(){
 //Stacked bars by language end point
  entStackedChart(byMonth);
 
- //Actual line in the Code
-// let labels=byMonth.map(x=>x[0]),values=byMonth.map(([p,items])=>items.reduce((a,x)=>a+(Number(x.hours)||0),0));
-
- 
- // Keep an explicit zero-height bar visible when the selected period has no entertainment data.
- if(!labels.length){labels=['No data'];values=[0]}
- else values=values.map(v=>Number.isFinite(v)?v:0);
- chart('entChart','bar',labels,[{label:'Entertainment (hrs)',data:values}] );
 }
 
 $('entSearch').oninput=renderEntertainment;$('entLanguageFilter').onchange=renderEntertainment;
