@@ -201,6 +201,23 @@ function entBars(id,items){
  const max=Math.max(1,...items.map(x=>x[1]));
  host.innerHTML='<div class="entBars">'+items.map(([name,count])=>'<div class="entBarRow"><span>'+name+'</span><div class="entBarTrack"><span style="width:'+Math.max(4,count/max*100)+'%"></span></div><span>'+count+'</span></div>').join('')+'</div>';
 }
+ // The below is line is used to create a Stacked Bar Chart in the Entertainment Graph
+ const entLangColors={Telugu:'#f59e0b',Hindi:'#ef4444',English:'#38bdf8',Tamil:'#a78bfa',Malayalam:'#4ade80',Kannada:'#f472b6',Korean:'#2dd4bf',Unknown:'#94a3b8'};
+const entFallbackColors=['#fb923c','#facc15','#60a5fa','#c084fc','#14b8a6','#f97316','#e879f9','#84cc16'];
+function entLangColor(name,i){return entLangColors[name]||entFallbackColors[i%entFallbackColors.length]}
+function entStackedChart(groups){
+ if(charts.entChart)charts.entChart.destroy();
+ const css=v=>getComputedStyle(document.body).getPropertyValue(v).trim(),text=css('--text')||'#edf4fc',muted=css('--muted')||'#9aacc2',line=css('--line')||'#293b53';
+ let labels=groups.map(g=>g[0]),datasets;
+ const totals=new Map();
+ groups.forEach(([,items])=>items.forEach(x=>{const l=x.language||'Unknown';totals.set(l,(totals.get(l)||0)+(Number(x.hours)||0))}));
+ const langs=[...totals].sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+ if(!labels.length||!langs.length){labels=['No data'];datasets=[{label:'Entertainment (hrs)',data:[0],backgroundColor:'#2dd4bf',stack:'lang'}]}
+ else datasets=langs.map((l,i)=>({label:l,data:groups.map(([,items])=>items.filter(x=>(x.language||'Unknown')===l).reduce((a,x)=>a+(Number(x.hours)||0),0)),backgroundColor:entLangColor(l,i),borderColor:entLangColor(l,i),borderWidth:0,stack:'lang'}));
+ charts.entChart=new Chart($('entChart'),{type:'bar',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:text}},tooltip:{filter:i=>i.parsed.y>0,callbacks:{label:c=>c.dataset.label+': '+displayValue(c.parsed.y,'hrs'),footer:items=>'Total: '+displayValue(items.reduce((a,i)=>a+i.parsed.y,0),'hrs')}}},scales:{x:{stacked:true,ticks:{color:muted},grid:{color:line}},y:{stacked:true,beginAtZero:true,ticks:{color:muted,callback:v=>displayValue(v,'hrs')},grid:{color:line}}}}});
+}
+
+ 
 function renderEntertainment(){
  const rs=entertainmentRows(),movies=rs.filter(x=>x.movie),total=rs.reduce((a,x)=>a+(x.hours||0),0),avg=movies.length?total/movies.length:0;
  const langs=new Map(),decades=new Map(),buckets=new Map([['Under 2h',0],['2h–2h 30m',0],['2h 30m+',0]]);
@@ -215,7 +232,14 @@ function renderEntertainment(){
  const shown=movies.filter(x=>(!lang||x.language===lang)&&[x.movie,x.language,x.year].join(' ').toLowerCase().includes(search));
  $('entTable').innerHTML=shown.length?'<table><thead><tr><th>MOVIE</th><th>RUNTIME</th><th>YEAR</th><th>LANGUAGE</th><th>Movie Name (COUNT)</th><th>Language (COUNTD)</th><th>Year (COUNTD)</th></tr></thead><tbody>'+shown.map(x=>'<tr><td>'+x.movie+'</td><td>'+entDuration(x.hours)+'</td><td>'+x.year+'</td><td>'+x.language+'</td><td>1</td><td>'+(x.language?1:0)+'</td><td>'+(x.year?1:0)+'</td></tr>').join('')+'</tbody><tfoot><tr><td>Grand Total</td><td>'+entDuration(shown.reduce((a,x)=>a+(x.hours||0),0))+'</td><td></td><td></td><td>'+shown.filter(x=>x.movie).length+'</td><td>'+new Set(shown.map(x=>x.language).filter(Boolean)).size+'</td><td>'+new Set(shown.map(x=>x.year).filter(Boolean)).size+'</td></tr></tfoot></table>':'<div class="empty">No entertainment records for this filter.</div>';
  const byMonth=bucket(rs.filter(x=>x.date),$('period').value);
- let labels=byMonth.map(x=>x[0]),values=byMonth.map(([p,items])=>items.reduce((a,x)=>a+(Number(x.hours)||0),0));
+ 
+//Stacked bars by language end point
+ entStackedChart(byMonth);
+
+ //Actual line in the Code
+// let labels=byMonth.map(x=>x[0]),values=byMonth.map(([p,items])=>items.reduce((a,x)=>a+(Number(x.hours)||0),0));
+
+ 
  // Keep an explicit zero-height bar visible when the selected period has no entertainment data.
  if(!labels.length){labels=['No data'];values=[0]}
  else values=values.map(v=>Number.isFinite(v)?v:0);
