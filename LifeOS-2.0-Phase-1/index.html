@@ -38,7 +38,10 @@ function key(r,k){let a=aliases[k]||[k];return Object.keys(r||{}).find(x=>a.some
 function val(r,k){let x=key(r,k);return x===null?null:r[x]}
 function n(v){let x=Number(String(v??'').replace(/,/g,'').replace(/[^0-9.-]/g,''));return Number.isFinite(x)?x:0}
 function durationHours(v){if(v===null||v===undefined||String(v).trim()==='')return null;if(typeof v==='number')return v;let s=String(v).trim();if(/^[-+]?\d*\.?\d+$/.test(s))return Number(s);let hm=s.match(/(-?\d+(?:\.\d+)?)\s*hours?\s*(\d+(?:\.\d+)?)?\s*minutes?/i);if(hm)return Number(hm[1])+(Number(hm[2]||0)/60);let mm=s.match(/(-?\d+(?:\.\d+)?)\s*minutes?/i);if(mm)return Number(mm[1])/60;return null}
+const TRACKING_START=new Date(2026,6,1);
 function metricValue(r,k){
+ if(['study','exercise','water'].includes(k)){const d=date(r);if(!d||d<TRACKING_START)return null}
+ if(k==='podcast'){const d=date(r);if(!d||d<TRACKING_START)return null}
  const get=(names)=>{for(const name of names){const col=Object.keys(r||{}).find(x=>norm(x)===norm(name));if(col!==undefined&&r[col]!==''&&r[col]!==null&&r[col]!==undefined)return r[col]}return null};
  const fromMinutes=(names,fallbackNames=[])=>{let v=get(names);if(v!==null)return n(v)/60;v=get(fallbackNames);return v===null?null:durationHours(v)};
  switch(k){
@@ -64,7 +67,7 @@ function sum(rs,k){let values=rs.map(r=>metricValue(r,k)).filter(v=>v!==null&&Nu
 function fmt(x){return x===null?'—':Number(x).toLocaleString(undefined,{maximumFractionDigits:2})}
 function fmtHoursMinutes(hours){if(hours===null||hours===undefined||!Number.isFinite(Number(hours)))return '—';let t=Math.round(Number(hours)*60),sign=t<0?'-':'';t=Math.abs(t);return sign+Math.floor(t/60)+'.'+String(t%60).padStart(2,'0')}
 
-function podcastRecords(rs){return rs.filter(r=>['Podcast Host','Podcast Name','Podcast Episode','Minutes','Hours'].some(k=>String(r[k]??'').trim()!==''))}
+function podcastRecords(rs){return rs.filter(r=>{const d=date(r);return d&&d>=TRACKING_START&&['Podcast Host','Podcast Name','Podcast Episode','Minutes','Hours'].some(k=>String(r[k]??'').trim()!=='')})}
  function kpiValues(d,s,po,h){let dates=new Set(h.filter(r=>metricValue(r,'steps')!==null).map(date).filter(Boolean).map(x=>x.toDateString()));let st=sum(h,'steps');return [sum(d,'sleep'),sum(s,'study'),st===null?null:st/(dates.size||1),podcastRecords(po).length]}
 function originalComparison(now=new Date()){
  const y=+$('year').value||now.getFullYear(),m=+$('month').value,q=+$('quarter').value.slice(1),all=!$('year').value;
@@ -100,7 +103,7 @@ function table(rs,id,p){if(!rs.length){$(id).innerHTML='<div class="empty">No re
  const cols=allKeys.filter(k=>norm(k)!=='date'&&!isHoursText(k)&&!(isPodcast&&(/^unnamed:/i.test(k)||norm(k).startsWith('entertainment')||[movieKey,languageKey,yearKey].includes(k)||podcastFields.includes(k)))&&(numeric(k)||isMinutes(k)));
  if(isPodcast)cols.push(...podcastFields);
  const label=k=>{if(k==='Minutes')return id==='studyTable'?'Study (hrs)':'Podcast (hrs)';if(k==='Article / Blogs')return 'Article / Blogs (hrs)';if(k==='Sleep Minutes')return 'Sleep (hrs)';if(k==='Office Min'||k==='Office Minutes')return 'Office (hrs)';if(k==='Exercise Min'||k==='Exercise Minutes')return 'Exercise (hrs)';if(k==='Entertainment Min'||k==='Entertainment Minutes')return 'Entertainment (hrs)';return k};
- const total=(items,k)=>items.reduce((sum,r)=>sum+n(r[k]),0);
+ const total=(items,k)=>items.reduce((sum,r)=>{const d=date(r),nk=norm(k);if((id==='studyTable'&&nk==='minutes'||id==='podcastTable'&&nk==='minutes'||id==='dailyTable'&&['exercise min','exercise mins','exercise minutes'].includes(nk))&&(!d||d<TRACKING_START))return sum;return sum+n(r[k])},0);
  const duration=k=>isMinutes(k);
  const formatDurationMinutes=minutes=>{let t=Math.round(minutes),sign=t<0?'-':'';t=Math.abs(t);return sign+Math.floor(t/60)+'.'+String(t%60).padStart(2,'0')};
  const cell=(items,k)=>isPodcast&&podcastFields.includes(k)?[...new Set(items.map(r=>String(r[k]??'').trim()).filter(Boolean))].join(', ')||'—':duration(k)?formatDurationMinutes(total(items,k)):fmt(total(items,k));
@@ -110,7 +113,7 @@ function table(rs,id,p){if(!rs.length){$(id).innerHTML='<div class="empty">No re
  out+='</tbody><tfoot><tr><td>Grand Total</td>'+cols.map(k=>'<td>'+(isPodcast&&podcastFields.includes(k)?'':cell(rs,k))+'</td>').join('')+summary(rs)+'</tr></tfoot></table>';$(id).innerHTML=out}
 
 function overviewTable(p){
- const sources={daily:filtered('daily'),study:filtered('study'),podcast:filtered('podcast'),health:filtered('health')};
+ const sources={daily:filtered('daily'),study:filtered('study'),podcast:podcastFiltered(),health:filtered('health')};
  const fields=[
  ['Sleep (hrs)','daily','sleep','duration'],['Exercise (hrs)','daily','exercise','duration'],['Office (hrs)','daily','office','duration'],
  ['Study (hrs)','study','study','duration'],['Podcast (hrs)','podcast','podcast','duration'],
@@ -127,7 +130,7 @@ function overviewTable(p){
  const ordered=[...periods].sort((a,b)=>a[1]-b[1]).map(x=>x[0]);
  const duration=v=>{let t=Math.round(v*60);return (t<0?'-':'')+Math.floor(Math.abs(t)/60)+'.'+String(Math.abs(t)%60).padStart(2,'0')};
  const calculate=(items,field,kind)=>{
-  if(kind==='count')return items.filter(r=>Object.keys(r).some(k=>norm(k)===field&&String(r[k]??'').trim())).length;
+  if(kind==='count')return items.filter(r=>{const d=date(r);return d&&d>=TRACKING_START&&Object.keys(r).some(k=>norm(k)===field&&String(r[k]??'').trim())}).length;
   if(kind==='distinct'||kind==='yearDistinct'){
    const values=items.map(r=>{const k=Object.keys(r).find(k=>norm(k)===field)||(kind==='yearDistinct'?Object.keys(r).find(k=>norm(k)==='unnamed: 10'):null);return k===undefined||k===null?'':norm(r[k])}).filter(Boolean);
    return new Set(values).size;
@@ -143,7 +146,7 @@ function overviewTable(p){
 }
 function trackerSeries(tab,rs){const defs={daily:[['Sleep (hrs)','sleep'],['Office (hrs)','office'],['Exercise (hrs)','exercise']],study:[['Study (hrs)','study'],['Articles / Blogs (hrs)','articles']],podcast:[['Podcast (hrs)','podcast']],health:[['Steps','steps'],['Distance (km)','distance'],['Stairs climbed','stairs'],['Water (L)','water']]};return (defs[tab]||[]).map(([label,id])=>[label,rs,id])}
 function baseDrawMetric(tab,defs,p,canvasId){let options=defs.map(x=>[x[0],x[2]]);let chosen=activeMetric[tab];if(!options.some(x=>x[1]===chosen))chosen=options.length?options[0][1]:'';activeMetric[tab]=chosen;let host=$(tab+'Chips');if(host)host.innerHTML=options.map(([label,id])=>'<button class="chip '+(id===chosen?'active':'')+'" data-metric="'+id+'">'+label+'</button>').join('');if(host)host.querySelectorAll('button').forEach(b=>b.onclick=()=>{activeMetric[tab]=b.dataset.metric;render()});let picked=defs.find(x=>x[2]===chosen);if(!picked){if(charts[canvasId]){charts[canvasId].destroy();delete charts[canvasId]}return}let rs=picked[1],metric=picked[2],groups=bucket(rs,p);chart(canvasId,'line',groups.map(x=>x[0]),[{label:picked[0],data:groups.map(([label,items])=>sum(items,metric)||0),tension:.25}])}
-function podcastFiltered(){return ($('year').value||$('quarter').value||$('month').value)?originalFiltered('podcast'):filtered('podcast')}
+function podcastFiltered(){const rs=($('year').value||$('quarter').value||$('month').value)?originalFiltered('podcast'):filtered('podcast');return rs.filter(r=>{const d=date(r);return d&&d>=TRACKING_START})}
 function originalRender(){let p=$('period').value,d=filtered('daily'),s=filtered('study'),po=podcastFiltered(),h=filtered('health');$('healthKpis').innerHTML=[['Cumulative Steps','steps'],['Cumulative Distance (km)','distance'],['Cumulative Stairs climbed','stairs'],['Cumulative Water (L)','water']].map(([label,metric])=>'<div class="card"><div class="metric">'+label+'</div><div class="value">'+fmt(sum(h,metric))+'</div></div>').join('');let values=kpiValues(d,s,po,h),changes=comparison()||[];$('kpis').innerHTML=[['Total Sleep Hours','hrs'],['Total Study Hours','hrs'],['Daily Avg Steps','steps'],['Podcast Records','records']].map(([label,unit],i)=>card(label,values[i],unit,changes[i])).join('');
 let series=[['Sleep (hrs)',d,'sleep'],['Office (hrs)',d,'office'],['Exercise (hrs)',d,'exercise'],['Study (hrs)',s,'study'],['Articles / Blogs (hrs)',s,'articles'],['Podcast (hrs)',po,'podcast']];drawMetric('overview',series,p,'trend');$('trendTitle').textContent='Overview Trends (hours) · '+p+' view';chart('records','bar',TRACKERS.map(x=>x[1]),[{label:'Records',data:TRACKERS.map(x=>x[0]==='podcast'?podcastRecords(filtered(x[0])).length:filtered(x[0]).length)}]);overviewTable(p);TRACKERS.forEach(([k])=>{let rs=filtered(k);table(rs,k+'Table',p);let defs=trackerSeries(k,rs);drawMetric(k,defs,p,k+'Chart')});renderPodcastReport(po,p)}
 function reportEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -233,7 +236,7 @@ function renderExecutiveSummary(){
  let bounds=selectedBounds();
  if(bounds)bounds=[bounds[0],new Date(Math.min(+bounds[1],+tomorrow))];
  else if(!explicit){
-  const dates=metrics.flatMap(m=>rows(m.source).map(date).filter(Boolean));
+  const dates=metrics.flatMap(m=>rows(m.source).map(date).filter(d=>d&&(m.key==='study'||m.key==='exercise'||m.key==='water'||m.key==='podcast'?d>=TRACKING_START:true)));
   if(dates.length)bounds=[new Date(Math.min(...dates.map(d=>+dayStart(d)))),tomorrow];
  }
  if(!bounds||bounds[1]<=bounds[0]){
