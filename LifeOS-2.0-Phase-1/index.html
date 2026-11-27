@@ -1,253 +1,717 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LifeOS 2.0 Phase 1 — Preview</title><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-:root{color-scheme:dark;--bg:#091321;--panel:#111f32;--line:#293b53;--muted:#9aacc2;--text:#edf4fc;--accent:#40c7df}body.light{color-scheme:light;--bg:#f3f6fb;--panel:#fff;--line:#d8e0eb;--muted:#607086;--text:#172337;--accent:#087e9b}body.light button,body.light select{background:#fff;color:var(--text)}body.light tfoot{background:#e8eef6}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,system-ui,sans-serif}.wrap{max-width:1500px;margin:auto;padding:24px}.head,.tabs,.filters,.cards,.charts{display:flex;gap:12px;flex-wrap:wrap}.head{justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:18px}.head h1{margin:0;color:var(--accent)}.muted,.field{color:var(--muted)}button,select{background:#17283d;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer}.tabs{margin:18px 0}.tab.active{border-color:var(--accent);background:#124052}.filters,.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px}.filters{align-items:end}.field{display:grid;gap:6px;font-size:12px}.field select{min-width:135px}.status{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid #285b48;border-radius:999px;background:#102c25;color:#8ce2b5;font-size:11px;font-weight:600;white-space:nowrap}.status:before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.status.error{border-color:#704047;background:#321c25;color:#ff9b9b}.status.syncing{border-color:#66572f;background:#302817;color:#f3d58a}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:16px}.card{min-width:0}.metric{color:var(--muted);font-size:12px}.value{font-size:26px;font-weight:700;margin-top:8px}.panel{margin-top:16px;flex:1;min-width:280px}.charts{display:flex}.chartbox{height:320px;position:relative}.section{display:none}.section.active{display:block}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}th,td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}th{color:var(--muted);font-size:12px}tfoot{font-weight:700;background:#1a2b40}.empty{padding:24px;text-align:center;color:var(--muted)}.chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.chip{padding:7px 11px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--muted);font-size:12px}.chip.active{background:#075985;border-color:#38bdf8;color:white}h2{font-size:16px;margin:0 0 14px}@media(max-width:760px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap{padding:13px}.charts{display:block}}
-.kpi-change{font-size:13px;font-weight:700;margin-top:8px}.kpi-change.up{color:#4ade80}.kpi-change.down{color:#f87171}.kpi-change.neutral,.kpi-period{color:var(--muted)}.kpi-period{font-size:11px;margin-top:3px;line-height:1.4}body.light .kpi-change.up{color:#15803d}body.light .kpi-change.down{color:#b91c1c}.wrap{padding-left:245px;max-width:1800px}.tabs{position:fixed;left:16px;top:110px;width:205px;display:flex;flex-direction:column;margin:0}.tabs button{text-align:left}.navClosed .tabs{display:none}.navClosed .wrap{padding-left:24px}.filters{position:sticky;top:0;z-index:3}.quick{display:flex;gap:5px;flex-wrap:wrap;width:100%}.quick button.active{border-color:var(--accent);color:var(--accent)}.value{font-size:clamp(18px,2vw,28px)}.goalTrack{height:6px;background:var(--line);border-radius:8px;overflow:hidden;margin:6px 0}.goalTrack span{display:block;height:100%;background:var(--accent)}.goalLine{font-size:12px;color:var(--muted)}.tablewrap{max-height:540px}thead th{position:sticky;top:0;background:var(--panel);cursor:pointer}tbody tr:nth-child(even){background:color-mix(in srgb,var(--line) 18%,transparent)}.highCell{color:var(--accent);font-weight:600}.tableTools{display:flex;gap:8px;margin-bottom:8px}.tableTools input,dialog input{background:var(--bg);color:var(--text);border:1px solid var(--line);padding:8px;border-radius:6px;min-width:0}dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:14px;width:min(440px,95vw)}dialog::backdrop{background:#0008}#goalFields label{display:flex;justify-content:space-between;align-items:center;margin:10px 0}#goalFields input{width:110px}.insightRow{display:flex;flex-wrap:wrap;gap:12px}.insightRow span{flex:1;min-width:160px}.panel{min-width:0}@media(max-width:1000px){.wrap,.navClosed .wrap{padding:14px}.tabs{position:static;width:auto;flex-direction:row;margin:12px 0}.filters{position:static}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:420px){.cards{grid-template-columns:1fr}.field select{min-width:110px}.tableTools{flex-wrap:wrap}}.entStat{border-top:3px solid var(--accent)}.entBars{display:grid;gap:10px}.entBarRow{display:grid;grid-template-columns:90px 1fr 22px;gap:8px;align-items:center;font-size:12px}.entBarTrack{height:10px;background:var(--line);border-radius:20px;overflow:hidden}.entBarTrack span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#8b5cf6,#ec4899)}.entTableWrap{overflow:auto}#entTable table{width:100%}#entTable td,#entTable th{text-align:left}#entLanguageFilter{max-width:180px}@media(max-width:760px){#entInsights{display:block}}</style></head><body><main class="wrap">
-<header class="head"><div><h1>LifeOS 2.0</h1><div class="muted">Personal Performance Intelligence</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="navToggle">☰ Menu</button><button id="goalButton">Goal settings</button><button id="theme">☀️ Theme</button><button id="refresh">↻ Refresh Data</button><span class="status" id="status" role="status" aria-live="polite">Connecting…</span><span id="lastUpdated" class="muted" style="font-size:12px;align-self:center;white-space:nowrap">Last updated: —</span></div></header>
-<nav class="tabs"><button class="tab active" data-tab="overview">Executive Overview</button><button class="tab" data-tab="daily">Daily Tracker</button><button class="tab" data-tab="study">Study Tracker</button><button class="tab" data-tab="podcast">Podcast Tracker</button><button class="tab" data-tab="health">Health Tracker</button><button class="tab" data-tab="entertainment">Entertainment Tracker</button></nav>
-<div class="filters"><div class="quick" id="quick"></div>
-<label class="field">Year<select id="year"><option value="">All Years</option></select></label>
-<label class="field">Quarter<select id="quarter"><option value="">All Quarters</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select></label>
-<label class="field">Month<select id="month"><option value="">All Months</option></select></label>
-<label class="field">Period / X-Axis View By<select id="period"><option>Daily</option><option>Weekly</option><option selected>Monthly</option><option>Quarterly</option><option>Half Yearly</option><option>Yearly</option></select></label>
-<button id="reset">Reset</button>
-</div>
-<section id="overview" class="section active"><div class="cards" id="kpis"></div><div class="panel" id="highlights"></div><div class="charts"><div class="panel" style="flex:2"><h2 id="trendTitle">Overview Trends (hours) · Monthly view</h2><div id="overviewChips" class="chips"></div><div class="chartbox"><canvas id="trend"></canvas></div></div><div class="panel"><h2>Records by Tracker</h2><div class="chartbox"><canvas id="records"></canvas></div></div></div><div class="panel"><h2>Executive Summary · Grand Totals</h2><div class="tablewrap" id="overviewTable"></div></div></section>
-<section id="daily" class="section"><div class="panel"><h2>Daily Tracker · Trend</h2><div id="dailyChips" class="chips"></div><div class="chartbox"><canvas id="dailyChart"></canvas></div></div><div class="panel"><h2>Daily Tracker · Table</h2><div class="tablewrap" id="dailyTable"></div></div></section>
-<section id="study" class="section"><div class="panel"><h2>Study Tracker · Trend</h2><div id="studyChips" class="chips"></div><div class="chartbox"><canvas id="studyChart"></canvas></div></div><div class="panel"><h2>Study Tracker · Table</h2><div class="tablewrap" id="studyTable"></div></div></section>
-<section id="podcast" class="section"><div class="cards" id="podcastKpis"></div><div class="panel"><h2>Podcast Listening Trend</h2><div id="podcastChips" class="chips"></div><div class="chartbox"><canvas id="podcastChart"></canvas></div></div><div class="panel"><h2>Monthly Listening Summary</h2><p class="muted">Monthly totals and numeric grand total. Episode-level details are listed separately below.</p><div class="tablewrap" id="podcastTable"></div></div><div class="panel"><h2>Podcast Episode Details</h2><p class="muted">One row per recorded episode for easier reading and PDF reporting.</p><div class="tablewrap" id="podcastDetails"></div></div></section>
-<section id="entertainment" class="section">
-<div class="cards" id="entKpis"></div>
-<div class="charts" id="entInsights">
- <div class="panel"><h2>By language</h2><div id="entLanguages"></div></div>
- <div class="panel"><h2>By decade</h2><div id="entDecades"></div></div>
- <div class="panel"><h2>Runtime buckets</h2><div id="entBuckets"></div></div>
-</div>
-<div class="panel"><h2>Entertainment trend</h2><div class="chartbox"><canvas id="entChart"></canvas></div></div>
-<div class="panel"><h2>Entertainment Tracker</h2><div class="tableTools"><input id="entSearch" placeholder="Search movies..." aria-label="Search movies"><select id="entLanguageFilter"><option value="">All languages</option></select></div><div class="tablewrap" id="entTable"></div></div>
-</section>
-<section id="health" class="section"><div class="panel"><h2>Health Tracker · Trend</h2><div id="healthChips" class="chips"></div><div class="chartbox"><canvas id="healthChart"></canvas></div></div><div class="panel"><h2>Health Tracker · Table</h2><div class="tablewrap" id="healthTable"></div></div></section>
-<p class="muted">Daily, weekly, monthly, quarterly, half-yearly and yearly grouping applies to charts and tables. Grand Total is calculated from all filtered source records.</p>
-<dialog id="goalDialog"><form id="goalForm"><h2>Personal goals</h2><div id="goalFields"></div><p class="muted">Saved on this browser. Personal targets, not health recommendations.</p><button type="submit">Save goals</button> <button type="button" id="goalCancel">Cancel</button></form></dialog></main>
 <script>
-const DATA='../sheet_data.json',TRACKERS=[['daily','Daily Tracker'],['study','Study Tracker'],['podcast','Podcast Tracker'],['health','Health Tracker']];
-let data={},charts={},activeMetric={overview:'sleep',daily:'sleep',study:'study',podcast:'podcast',health:'steps'};const $=id=>document.getElementById(id),norm=s=>String(s??'').trim().toLowerCase().replace(/[_-]+/g,' ').replace(/\s+/g,' ');
-const aliases={date:['date','day','datetime','timestamp'],sleep:['sleep','sleep minutes','sleep hours','total sleep hours','sleep (hrs)','sleep hrs'],office:['office','office min','office minutes','office hours','office (hrs)','work hours'],exercise:['exercise','exercise min','exercise minutes','exercise hours','exercise (hrs)','workout'],study:['study','study hours','study (hrs)','total study hours','hours','minutes'],articles:['articles / blogs','article / blogs','article/blogs','articles/blogs','articles','blogs','article/blog time','hours.1'],podcast:['podcast','podcast hours','podcast (hrs)','podcast listen','podcast listening','hours','minutes'],entertainment:['entertainment','entertainment min','entertainment minutes','entertainment hours'],steps:['steps','step count','total steps'],distance:['distance','distance km','distance (km)','total distance'],water:['water','water l','water (l)','water ml','water (ml)','water intake'],stairs:['stairs','stairs climbed','floors climbed','stair count']};
-function key(r,k){let a=aliases[k]||[k];return Object.keys(r||{}).find(x=>a.some(y=>norm(x)===norm(y)))||null}
-function val(r,k){let x=key(r,k);return x===null?null:r[x]}
-function n(v){let x=Number(String(v??'').replace(/,/g,'').replace(/[^0-9.-]/g,''));return Number.isFinite(x)?x:0}
-function durationHours(v){if(v===null||v===undefined||String(v).trim()==='')return null;if(typeof v==='number')return v;let s=String(v).trim();if(/^[-+]?\d*\.?\d+$/.test(s))return Number(s);let hm=s.match(/(-?\d+(?:\.\d+)?)\s*hours?\s*(\d+(?:\.\d+)?)?\s*minutes?/i);if(hm)return Number(hm[1])+(Number(hm[2]||0)/60);let mm=s.match(/(-?\d+(?:\.\d+)?)\s*minutes?/i);if(mm)return Number(mm[1])/60;return null}
-function metricValue(r,k){
- const get=(names)=>{for(const name of names){const col=Object.keys(r||{}).find(x=>norm(x)===norm(name));if(col!==undefined&&r[col]!==''&&r[col]!==null&&r[col]!==undefined)return r[col]}return null};
- const fromMinutes=(names,fallbackNames=[])=>{let v=get(names);if(v!==null)return n(v)/60;v=get(fallbackNames);return v===null?null:durationHours(v)};
- switch(k){
- case 'sleep':return fromMinutes(['Sleep Minutes'],['Sleep Hours']);
- case 'office':return fromMinutes(['Office Min','Office Minutes'],['Office Hours']);
- case 'exercise':return fromMinutes(['Exercise Min','Exercise Minutes'],['Exercise Hours']);
- case 'study':return fromMinutes(['Minutes'],['Hours']);
- case 'articles':return fromMinutes(['Article / Blogs','Articles / Blogs'],['Hours.1','Hours_1']);
- case 'podcast':return fromMinutes(['Minutes'],['Hours']);
- case 'entertainment':return fromMinutes(['Entertainment Min','Entertainment Minutes'],['Entertainment Hours']);
- case 'water':{let v=get(['Water (L)','Water L']);if(v!==null)return n(v);v=get(['Water (ML)','Water ML']);return v===null?null:n(v)/1000}
- case 'steps':{let v=get(['Steps']);return v===null?null:n(v)}
- case 'distance':{let v=get(['Distance KM','Distance (KM)','Distance']);return v===null?null:n(v)}
- case 'stairs':{let v=get(['Stairs Climbed','Stairs']);return v===null?null:n(v)}
- default:{let v=val(r,k);return v===null?null:n(v)}
- }
-}function date(r){let v=val(r,'date');if(!v)return null;let iso=String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);if(iso)return new Date(+iso[1],+iso[2]-1,+iso[3]);let d=new Date(v);if(!isNaN(d))return d;let m=String(v).match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$/);if(m){let y=+m[3];if(y<100)y+=2000;return new Date(y,+m[2]-1,+m[1])}return null}
-function rows(k){return(data[k]||[]).filter(r=>Object.keys(r).length)}
-function originalFiltered(k){let y=+$('year').value||(!$('year').value&&($('quarter').value||$('month').value)?new Date().getFullYear():0);return rows(k).filter(r=>{let d=date(r);return !d?(!$('year').value&&!$('quarter').value&&!$('month').value):(!y||d.getFullYear()===y)&&(!$('quarter').value||'Q'+(Math.floor(d.getMonth()/3)+1)===$('quarter').value)&&(!$('month').value||d.getMonth()+1==+$('month').value)})}
-function period(d,p){let y=d.getFullYear(),m=d.getMonth();if(p==='Daily')return d.toLocaleDateString();if(p==='Weekly'){let x=new Date(y,m,d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return 'Week of '+x.toLocaleDateString()}if(p==='Monthly')return d.toLocaleString(undefined,{month:'short',year:'numeric'});if(p==='Quarterly')return y+' Q'+(Math.floor(m/3)+1);if(p==='Half Yearly')return y+' H'+(m<6?1:2);return String(y)}
-function bucket(rs,p){let map=new Map();rs.forEach(r=>{let d=date(r);if(!d)return;let k=period(d,p);if(!map.has(k))map.set(k,[]);map.get(k).push(r)});return [...map].sort((a,b)=>date(a[1][0])-date(b[1][0]))}
-function sum(rs,k){let values=rs.map(r=>metricValue(r,k)).filter(v=>v!==null&&Number.isFinite(v));return values.length?values.reduce((a,b)=>a+b,0):null}
-function fmt(x){return x===null?'—':Number(x).toLocaleString(undefined,{maximumFractionDigits:2})}
-function fmtHoursMinutes(hours){if(hours===null||hours===undefined||!Number.isFinite(Number(hours)))return '—';let t=Math.round(Number(hours)*60),sign=t<0?'-':'';t=Math.abs(t);return sign+Math.floor(t/60)+'.'+String(t%60).padStart(2,'0')}
+const DATA = '../sheet_data.json';
+const TRACKERS = [
+  ['daily', 'Daily Tracker'],
+  ['study', 'Study Tracker'],
+  ['podcast', 'Podcast Tracker'],
+  ['health', 'Health Tracker']
+];
 
-function podcastRecords(rs){return rs.filter(r=>['Podcast Host','Podcast Name','Podcast Episode','Minutes','Hours'].some(k=>String(r[k]??'').trim()!==''))}
- function kpiValues(d,s,po,h){let dates=new Set(h.filter(r=>metricValue(r,'steps')!==null).map(date).filter(Boolean).map(x=>x.toDateString()));let st=sum(h,'steps');return [sum(d,'sleep'),sum(s,'study'),st===null?null:st/(dates.size||1),podcastRecords(po).length]}
-function originalComparison(now=new Date()){
- const y=+$('year').value||now.getFullYear(),m=+$('month').value,q=+$('quarter').value.slice(1),all=!$('year').value;
- if(m&&q&&Math.floor((m-1)/3)+1!==q)return null;
- const width=m?1:q?3:12, startMonth=m?m-1:q?(q-1)*3:0;
- const start=new Date(y,startMonth,1),end=new Date(y,startMonth+width,1);
- const prev=new Date(y,startMonth-(all&&m?12:width),1),prevEnd=new Date(prev.getFullYear(),prev.getMonth()+width,1);
- const today=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
- if(start>=today)return null;
- const partial=today<end, stop=partial?today:end;
- let priorStop=prevEnd;
- if(partial){const offset=(stop.getFullYear()-start.getFullYear())*12+stop.getMonth()-start.getMonth();const target=new Date(prev.getFullYear(),prev.getMonth()+offset,1);const days=new Date(target.getFullYear(),target.getMonth()+1,0).getDate();priorStop=new Date(target.getFullYear(),target.getMonth(),Math.min(stop.getDate(),days+1));if(priorStop>prevEnd)priorStop=prevEnd}
- const labelDate=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
- const labelRange=(a,b)=>labelDate(a)+' – '+labelDate(new Date(b.getFullYear(),b.getMonth(),b.getDate()-1));
- const collect=(a,b)=>TRACKERS.map(([k])=>rows(k).filter(r=>{const d=date(r);return d&&d>=a&&d<b}));
- const current=collect(start,stop),previous=collect(prev,priorStop);
- const cv=kpiValues(...current),pv=kpiValues(...previous);
- const source=[0,1,3,2];
- return cv.map((v,i)=>({previous:previous[source[i]].length?pv[i]:null,current:v,change:(i===3?podcastRecords(current[source[i]]).length:current[source[i]].length)&&(i===3?podcastRecords(previous[source[i]]).length:previous[source[i]].length)&&v!==null&&pv[i]!==null&&pv[i]!==0?(v-pv[i])/pv[i]*100:null,label:(all||width===12?'YoY: ':'vs. ')+labelRange(prev,priorStop),detail:labelRange(start,stop)+' vs '+labelRange(prev,priorStop)}));
+const DEFAULT_GOALS = {
+  sleepHours: 7.5,
+  studyHours: 2.0,
+  dailySteps: 8000,
+  podcastEpisodes: 1
+};
+
+const SAMPLE_DATA = {
+  daily: [
+    { Date: '2026-10-01', 'Sleep Minutes': 450, 'Office Min': 480, 'Exercise Min': 35 },
+    { Date: '2026-10-02', 'Sleep Minutes': 430, 'Office Min': 470, 'Exercise Min': 40 },
+    { Date: '2026-11-01', 'Sleep Minutes': 465, 'Office Min': 460, 'Exercise Min': 45 },
+    { Date: '2026-11-02', 'Sleep Minutes': 440, 'Office Min': 485, 'Exercise Min': 30 }
+  ],
+  study: [
+    { Date: '2026-10-01', Minutes: 120, 'Article / Blogs': 30 },
+    { Date: '2026-10-02', Minutes: 90, 'Article / Blogs': 45 },
+    { Date: '2026-11-01', Minutes: 150, 'Article / Blogs': 25 },
+    { Date: '2026-11-02', Minutes: 135, 'Article / Blogs': 40 }
+  ],
+  podcast: [
+    { Date: '2026-10-01', 'Podcast Host': 'Lex Fridman', 'Podcast Name': 'Lex Fridman Podcast', 'Podcast Episode': '#440', Minutes: 75, 'Entertainment Min': 40, 'Movie Name': ' Dune: Part Two', Language: 'English', Year: 2024 },
+    { Date: '2026-11-01', 'Podcast Host': 'Andrew Huberman', 'Podcast Name': 'Huberman Lab', 'Podcast Episode': 'Sleep Toolkit', Minutes: 60, 'Entertainment Min': 90, 'Movie Name': 'Inception', Language: 'English', Year: 2010 },
+    { Date: '2026-11-02', 'Podcast Host': 'Nikhil Kamath', 'Podcast Name': 'WTF is', 'Podcast Episode': 'AI & India', Minutes: 55, 'Entertainment Min': 120, 'Movie Name': 'Baahubali 2', Language: 'Telugu', Year: 2017 }
+  ],
+  health: [
+    { Date: '2026-10-01', Steps: 9200, 'Distance KM': 6.8, 'Stairs Climbed': 11, 'Water (L)': 3.2 },
+    { Date: '2026-10-02', Steps: 8400, 'Distance KM': 6.1, 'Stairs Climbed': 9, 'Water (L)': 3.0 },
+    { Date: '2026-11-01', Steps: 10450, 'Distance KM': 7.9, 'Stairs Climbed': 14, 'Water (L)': 3.5 },
+    { Date: '2026-11-02', Steps: 9800, 'Distance KM': 7.2, 'Stairs Climbed': 12, 'Water (L)': 3.3 }
+  ]
+};
+
+let data = {};
+let charts = {};
+let activeMetric = {
+  overview: 'sleep',
+  daily: 'sleep',
+  study: 'study',
+  podcast: 'podcast',
+  health: 'steps'
+};
+
+const $ = id => document.getElementById(id);
+const norm = s => String(s ?? '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+
+const aliases = {
+  date: ['date', 'day', 'datetime', 'timestamp'],
+  sleep: ['sleep', 'sleep minutes', 'sleep hours', 'total sleep hours', 'sleep (hrs)', 'sleep hrs'],
+  office: ['office', 'office min', 'office minutes', 'office hours', 'office (hrs)', 'work hours'],
+  exercise: ['exercise', 'exercise min', 'exercise minutes', 'exercise hours', 'exercise (hrs)', 'workout'],
+  study: ['study', 'study hours', 'study (hrs)', 'total study hours', 'hours', 'minutes'],
+  articles: ['articles / blogs', 'article / blogs', 'article/blogs', 'articles/blogs', 'articles', 'blogs', 'article/blog time', 'hours.1'],
+  podcast: ['podcast', 'podcast hours', 'podcast (hrs)', 'podcast listen', 'podcast listening', 'hours', 'minutes'],
+  entertainment: ['entertainment', 'entertainment min', 'entertainment minutes', 'entertainment hours'],
+  steps: ['steps', 'step count', 'total steps'],
+  distance: ['distance', 'distance km', 'distance (km)', 'total distance'],
+  water: ['water', 'water l', 'water (l)', 'water ml', 'water (ml)', 'water intake'],
+  stairs: ['stairs', 'stairs climbed', 'floors climbed', 'stair count']
+};
+
+function key(r, k) {
+  const a = aliases[k] || [k];
+  return Object.keys(r || {}).find(x => a.some(y => norm(x) === norm(y))) || null;
 }
-function oldCard(label,value,unit,comparison){let display=unit==='hrs'?fmtHoursMinutes(value):fmt(value);let c=comparison?.change,rounded=c==null?null:Math.round(c*100)/100;let tone=rounded>0?'up':rounded<0?'down':'neutral';let delta=rounded==null?'N/A':(rounded>0?'▲ +':rounded<0?'▼ ':'— ')+rounded.toFixed(2)+'%';return '<div class="card"><div class="metric">'+label+'</div><div class="value">'+display+' <small class="muted">'+unit+'</small></div><div class="kpi-change '+tone+'">'+delta+'</div><div class="kpi-period">'+(comparison?.detail||'No comparable period')+'</div></div>'}
-const chartPalette={'Sleep (hrs)':'#38bdf8','Office (hrs)':'#fb923c','Exercise (hrs)':'#4ade80','Study (hrs)':'#a78bfa','Articles / Blogs (hrs)':'#facc15','Article / Blogs (hrs)':'#facc15','Podcast (hrs)':'#f472b6','Entertainment (hrs)':'#2dd4bf','Steps':'#60a5fa','Distance (km)':'#c084fc','Stairs climbed':'#f97316','Records':'#14b8a6'};
-function chart(id,type,labels,datasets){if(charts[id])charts[id].destroy();let styled=datasets.map(ds=>{let c=ds.borderColor||chartPalette[ds.label]||'#38bdf8';return {...ds,borderColor:c,backgroundColor:type==='bar'?c:'transparent',pointBackgroundColor:c,pointBorderColor:c,pointHoverBackgroundColor:c,borderWidth:3,pointRadius:ds.borderDash?0:type==='line'?3:0,pointHoverRadius:5,fill:false}});let hourChart=datasets.some(ds=>/\(hrs\)/i.test(ds.label||''));charts[id]=new Chart($(id),{type,data:{labels,datasets:styled},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:getComputedStyle(document.body).getPropertyValue('--text').trim()||'#edf4fc'}},tooltip:{callbacks:{label:ctx=>hourChart?(ctx.dataset.label+': '+displayValue(ctx.parsed.y,'hrs')):(ctx.dataset.label+': '+fmt(ctx.parsed.y))}}},scales:{x:{ticks:{color:getComputedStyle(document.body).getPropertyValue('--muted').trim()||'#9aacc2'},grid:{color:getComputedStyle(document.body).getPropertyValue('--line').trim()||'#293b53'}},y:{beginAtZero:true,ticks:{color:getComputedStyle(document.body).getPropertyValue('--muted').trim()||'#9aacc2',callback:value=>hourChart?displayValue(value,'hrs'):value},grid:{color:getComputedStyle(document.body).getPropertyValue('--line').trim()||'#293b53'}}}}})}
-function table(rs,id,p){if(!rs.length){$(id).innerHTML='<div class="empty">No records for this filter.</div>';return}
- const numeric=k=>rs.some(r=>r[k]!==''&&r[k]!==null&&r[k]!==undefined&&Number.isFinite(Number(String(r[k]).replace(/,/g,''))));
- const isHoursText=k=>/hours?/i.test(k);
- const isMinutes=k=>{let x=norm(k);return ['sleep minutes','sleep min','exercise min','exercise mins','exercise minutes','office min','office mins','office minutes','entertainment min','entertainment mins','entertainment minutes','minutes','article / blogs','articles / blogs'].includes(x)};
- const isPodcast=id==='podcastTable',isEntertainment=id==='entTable';
- const allKeys=[...new Set(rs.flatMap(r=>Object.keys(r)))];
- const findKey=name=>allKeys.find(k=>norm(k)===norm(name));
- const movieKey=findKey('movie name'),languageKey=findKey('language'),yearKey=findKey('year')||findKey('unnamed: 10');
- const podcastFields=[];
- const cols=allKeys.filter(k=>norm(k)!=='date'&&!isHoursText(k)&&!(isPodcast&&(/^unnamed:/i.test(k)||norm(k).startsWith('entertainment')||[movieKey,languageKey,yearKey].includes(k)||podcastFields.includes(k)))&&(numeric(k)||isMinutes(k)));
- if(isPodcast)cols.push(...podcastFields);
- const label=k=>{if(k==='Minutes')return id==='studyTable'?'Study (hrs)':'Podcast (hrs)';if(k==='Article / Blogs')return 'Article / Blogs (hrs)';if(k==='Sleep Minutes')return 'Sleep (hrs)';if(k==='Office Min'||k==='Office Minutes')return 'Office (hrs)';if(k==='Exercise Min'||k==='Exercise Minutes')return 'Exercise (hrs)';if(k==='Entertainment Min'||k==='Entertainment Minutes')return 'Entertainment (hrs)';return k};
- const total=(items,k)=>items.reduce((sum,r)=>sum+n(r[k]),0);
- const duration=k=>isMinutes(k);
- const formatDurationMinutes=minutes=>{let t=Math.round(minutes),sign=t<0?'-':'';t=Math.abs(t);return sign+Math.floor(t/60)+'.'+String(t%60).padStart(2,'0')};
- const cell=(items,k)=>isPodcast&&podcastFields.includes(k)?[...new Set(items.map(r=>String(r[k]??'').trim()).filter(Boolean))].join(', ')||'—':duration(k)?formatDurationMinutes(total(items,k)):fmt(total(items,k));
- let groups=bucket(rs,p),out='<table><thead><tr><th>Period</th>'+cols.map(k=>'<th>'+label(k)+'</th>').join('')+(isEntertainment?'<th>Movie Name (COUNT)</th><th>Language (COUNTD)</th><th>Year (COUNTD)</th>':'')+'</tr></thead><tbody>';
- const summary=items=>isEntertainment?'<td>'+fmt(items.filter(r=>String(r['Movie Name']??'').trim()).length)+'</td><td>'+fmt(new Set(items.map(r=>norm(r.Language)).filter(Boolean)).size)+'</td><td>'+fmt(new Set(items.map(r=>norm(r.Year||r['Unnamed: 10'])).filter(Boolean)).size)+'</td>':'';
- groups.forEach(([periodLabel,items])=>{out+='<tr><td>'+periodLabel+'</td>'+cols.map(k=>'<td>'+cell(items,k)+'</td>').join('')+summary(items)+'</tr>'});
- out+='</tbody><tfoot><tr><td>Grand Total</td>'+cols.map(k=>'<td>'+(isPodcast&&podcastFields.includes(k)?'':cell(rs,k))+'</td>').join('')+summary(rs)+'</tr></tfoot></table>';$(id).innerHTML=out}
-
-function overviewTable(p){
- const sources={daily:filtered('daily'),study:filtered('study'),podcast:filtered('podcast'),health:filtered('health')};
- const fields=[
- ['Sleep (hrs)','daily','sleep','duration'],['Exercise (hrs)','daily','exercise','duration'],['Office (hrs)','daily','office','duration'],
- ['Study (hrs)','study','study','duration'],['Podcast (hrs)','podcast','podcast','duration'],
- ['Article / Blogs (hrs)','study','articles','duration'],['Entertainment (hrs)','podcast','entertainment','duration'],
- ['Movie Name (COUNT)','podcast','movie name','count'],['Language (COUNTD)','podcast','language','distinct'],
- ['Year (COUNTD)','podcast','year','yearDistinct'],['Water (ML)','health','water','waterMl'],
- ['Water (L)','health','water','numeric'],['Steps','health','steps','numeric'],
- ['Distance KM','health','distance','numeric'],['Stairs Climbed','health','stairs','numeric']];
- const groupMaps={};const periods=new Map();
- for(const [source,records] of Object.entries(sources)){
-  const groups=bucket(records,p);groupMaps[source]=new Map(groups);
-  for(const [label,items] of groups){const t=date(items[0]).getTime();if(!periods.has(label)||t<periods.get(label))periods.set(label,t)}
- }
- const ordered=[...periods].sort((a,b)=>a[1]-b[1]).map(x=>x[0]);
- const duration=v=>{let t=Math.round(v*60);return (t<0?'-':'')+Math.floor(Math.abs(t)/60)+'.'+String(Math.abs(t)%60).padStart(2,'0')};
- const calculate=(items,field,kind)=>{
-  if(kind==='count')return items.filter(r=>Object.keys(r).some(k=>norm(k)===field&&String(r[k]??'').trim())).length;
-  if(kind==='distinct'||kind==='yearDistinct'){
-   const values=items.map(r=>{const k=Object.keys(r).find(k=>norm(k)===field)||(kind==='yearDistinct'?Object.keys(r).find(k=>norm(k)==='unnamed: 10'):null);return k===undefined||k===null?'':norm(r[k])}).filter(Boolean);
-   return new Set(values).size;
+function val(r, k) {
+  const x = key(r, k);
+  return x === null ? null : r[x];
+}
+function n(v) {
+  const x = Number(String(v ?? '').replace(/,/g, '').replace(/[^0-9.-]/g, ''));
+  return Number.isFinite(x) ? x : 0;
+}
+function durationHours(v) {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  if (typeof v === 'number') return v;
+  const s = String(v).trim();
+  if (/^[-+]?\d*\.?\d+$/.test(s)) return Number(s);
+  const hm = s.match(/(-?\d+(?:\.\d+)?)\s*hours?\s*(\d+(?:\.\d+)?)?\s*minutes?/i);
+  if (hm) return Number(hm[1]) + (Number(hm[2] || 0) / 60);
+  const mm = s.match(/(-?\d+(?:\.\d+)?)\s*minutes?/i);
+  if (mm) return Number(mm[1]) / 60;
+  return null;
+}
+function metricValue(r, k) {
+  const get = names => {
+    for (const name of names) {
+      const col = Object.keys(r || {}).find(x => norm(x) === norm(name));
+      if (col !== undefined && r[col] !== '' && r[col] !== null && r[col] !== undefined) return r[col];
+    }
+    return null;
+  };
+  const fromMinutes = (names, fallbackNames = []) => {
+    let v = get(names);
+    if (v !== null) return n(v) / 60;
+    v = get(fallbackNames);
+    return v === null ? null : durationHours(v);
+  };
+  switch (k) {
+    case 'sleep': return fromMinutes(['Sleep Minutes'], ['Sleep Hours']);
+    case 'office': return fromMinutes(['Office Min', 'Office Minutes'], ['Office Hours']);
+    case 'exercise': return fromMinutes(['Exercise Min', 'Exercise Minutes'], ['Exercise Hours']);
+    case 'study': return fromMinutes(['Minutes'], ['Hours']);
+    case 'articles': return fromMinutes(['Article / Blogs', 'Articles / Blogs'], ['Hours.1', 'Hours_1']);
+    case 'podcast': return fromMinutes(['Minutes'], ['Hours']);
+    case 'entertainment': return fromMinutes(['Entertainment Min', 'Entertainment Minutes'], ['Entertainment Hours']);
+    case 'water': {
+      let v = get(['Water (L)', 'Water L']);
+      if (v !== null) return n(v);
+      v = get(['Water (ML)', 'Water ML']);
+      return v === null ? null : n(v) / 1000;
+    }
+    case 'steps': {
+      const v = get(['Steps']);
+      return v === null ? null : n(v);
+    }
+    case 'distance': {
+      const v = get(['Distance KM', 'Distance (KM)', 'Distance']);
+      return v === null ? null : n(v);
+    }
+    case 'stairs': {
+      const v = get(['Stairs Climbed', 'Stairs']);
+      return v === null ? null : n(v);
+    }
+    default: {
+      const v = val(r, k);
+      return v === null ? null : n(v);
+    }
   }
-  if(kind==='waterMl')return items.reduce((a,r)=>a+(metricValue(r,'water')||0)*1000,0);
-  return items.reduce((a,r)=>a+(metricValue(r,field)||0),0);
- };
- const value=(items,field,kind)=>{const v=calculate(items,field,kind);return kind==='duration'?duration(v):fmt(v)};
- const header='<tr><th>Period</th>'+fields.map(f=>'<th>'+f[0]+'</th>').join('')+'</tr>';
- const body=ordered.map(label=>'<tr><td>'+label+'</td>'+fields.map(([,source,field,kind])=>'<td>'+value(groupMaps[source].get(label)||[],field,kind)+'</td>').join('')+'</tr>').join('');
- const footer='<tr><td>Grand Total</td>'+fields.map(([,source,field,kind])=>'<td>'+value(sources[source],field,kind)+'</td>').join('')+'</tr>';
- $('overviewTable').innerHTML='<table><thead>'+header+'</thead><tbody>'+body+'</tbody><tfoot>'+footer+'</tfoot></table>';
 }
-function trackerSeries(tab,rs){const defs={daily:[['Sleep (hrs)','sleep'],['Office (hrs)','office'],['Exercise (hrs)','exercise']],study:[['Study (hrs)','study'],['Articles / Blogs (hrs)','articles']],podcast:[['Podcast (hrs)','podcast']],health:[['Steps','steps'],['Distance (km)','distance'],['Stairs climbed','stairs'],['Water (L)','water']]};return (defs[tab]||[]).map(([label,id])=>[label,rs,id])}
-function baseDrawMetric(tab,defs,p,canvasId){let options=defs.map(x=>[x[0],x[2]]);let chosen=activeMetric[tab];if(!options.some(x=>x[1]===chosen))chosen=options.length?options[0][1]:'';activeMetric[tab]=chosen;let host=$(tab+'Chips');if(host)host.innerHTML=options.map(([label,id])=>'<button class="chip '+(id===chosen?'active':'')+'" data-metric="'+id+'">'+label+'</button>').join('');if(host)host.querySelectorAll('button').forEach(b=>b.onclick=()=>{activeMetric[tab]=b.dataset.metric;render()});let picked=defs.find(x=>x[2]===chosen);if(!picked){if(charts[canvasId]){charts[canvasId].destroy();delete charts[canvasId]}return}let rs=picked[1],metric=picked[2],groups=bucket(rs,p);chart(canvasId,'line',groups.map(x=>x[0]),[{label:picked[0],data:groups.map(([label,items])=>sum(items,metric)||0),tension:.25}])}
-function podcastFiltered(){return ($('year').value||$('quarter').value||$('month').value)?originalFiltered('podcast'):filtered('podcast')}
-function originalRender(){let p=$('period').value,d=filtered('daily'),s=filtered('study'),po=podcastFiltered(),h=filtered('health');let values=kpiValues(d,s,po,h),changes=comparison()||[];$('kpis').innerHTML=[['Total Sleep Hours','hrs'],['Total Study Hours','hrs'],['Daily Avg Steps','steps'],['Podcast Records','records']].map(([label,unit],i)=>card(label,values[i],unit,changes[i])).join('');
-let series=[['Sleep (hrs)',d,'sleep'],['Office (hrs)',d,'office'],['Exercise (hrs)',d,'exercise'],['Study (hrs)',s,'study'],['Articles / Blogs (hrs)',s,'articles'],['Podcast (hrs)',po,'podcast']];drawMetric('overview',series,p,'trend');$('trendTitle').textContent='Overview Trends (hours) · '+p+' view';chart('records','bar',TRACKERS.map(x=>x[1]),[{label:'Records',data:TRACKERS.map(x=>x[0]==='podcast'?podcastRecords(filtered(x[0])).length:filtered(x[0]).length)}]);overviewTable(p);TRACKERS.forEach(([k])=>{let rs=filtered(k);table(rs,k+'Table',p);let defs=trackerSeries(k,rs);drawMetric(k,defs,p,k+'Chart')});renderPodcastReport(po,p)}
-function reportEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function renderPodcastReport(records,period){
- records=podcastFiltered();
- const episodes=podcastRecords(records),total=episodes.reduce((a,r)=>a+(metricValue(r,'podcast')||0),0);
- const shows=new Set(episodes.map(r=>String(r['Podcast Name']||'').trim()).filter(Boolean)).size;
- const avg=episodes.length?total/episodes.length:0;
- $('podcastKpis').innerHTML=[['TOTAL LISTENING TIME',displayValue(total,'hrs')],['EPISODES',fmt(episodes.length)],['PODCAST SHOWS',fmt(shows)],['AVG. LISTENING / EPISODE',displayValue(avg,'hrs')]].map(([label,value])=>'<div class="card"><div class="metric">'+label+'</div><div class="value">'+value+'</div></div>').join('');
- const sorted=[...episodes].sort((a,b)=>(date(a)?.getTime()||0)-(date(b)?.getTime()||0));
- const rows=sorted.map(r=>'<tr><td>'+reportEscape(r.Date||'—')+'</td><td>'+reportEscape(r['Podcast Host']||'—')+'</td><td>'+reportEscape(r['Podcast Name']||'—')+'</td><td>'+reportEscape(r['Podcast Episode']||'—')+'</td><td>'+displayValue(metricValue(r,'podcast'),'hrs')+'</td></tr>').join('');
- const dateLabel=r=>{const d=date(r);return d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):reportEscape(r.Date||'—')};
- $('podcastDetails').innerHTML=sorted.length?'<table><thead><tr><th>Date</th><th>Podcast Host</th><th>Podcast Name</th><th>Podcast Episode</th><th>Listening Time</th></tr></thead><tbody>'+sorted.map(r=>'<tr><td>'+dateLabel(r)+'</td><td>'+reportEscape(r['Podcast Host']||'—')+'</td><td>'+reportEscape(r['Podcast Name']||'—')+'</td><td>'+reportEscape(r['Podcast Episode']||'—')+'</td><td>'+displayValue(metricValue(r,'podcast'),'hrs')+'</td></tr>').join('')+'</tbody><tfoot><tr><td>Grand Total</td><td></td><td></td><td></td><td>'+displayValue(total,'hrs')+'</td></tr></tfoot></table>':'<div class="empty">No podcast episodes for this filter.</div>';
+function date(r) {
+  const v = val(r, 'date');
+  if (!v) return null;
+  const iso = String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return new Date(+iso[1], +iso[2] - 1, +iso[3]);
+  const d = new Date(v);
+  if (!isNaN(d)) return d;
+  const m = String(v).match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$/);
+  if (m) {
+    let y = +m[3];
+    if (y < 100) y += 2000;
+    return new Date(y, +m[2] - 1, +m[1]);
+  }
+  return null;
 }
-function filters(){let ds=TRACKERS.flatMap(([k])=>rows(k).map(date).filter(Boolean));$('year').innerHTML='<option value="">All Years</option>'+[...new Set(ds.map(d=>d.getFullYear()))].sort((a,b)=>b-a).map(y=>'<option>'+y+'</option>').join('');$('month').innerHTML='<option value="">All Months</option>'+Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">'+new Date(2000,i,1).toLocaleString(undefined,{month:'long'})+'</option>').join('')}
-async function load(){ $('status').className='status syncing';$('status').textContent='Syncing…';try{let r=await fetch(DATA+'?v='+Date.now());if(!r.ok)throw Error('HTTP '+r.status);data=await r.json();filters();render();const updated=new Date();$('lastUpdated').textContent='Last updated: '+updated.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});$('lastUpdated').title='Data successfully refreshed at '+updated.toLocaleString();$('status').className='status';$('status').textContent='Live Sync Active'}catch(e){$('status').className='status error';$('status').textContent='Sync unavailable'}}
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
-['year','quarter','month','period'].forEach(id=>$(id).onchange=render);$('reset').onclick=()=>{$('year').value='';$('quarter').value='';$('month').value='';$('period').value='Monthly';render()};$('refresh').onclick=load;$('theme').onclick=()=>{document.body.classList.toggle('light');$('theme').textContent=document.body.classList.contains('light')?'🌙 Dark':'☀️ Light'};
-// Phase 1: presentation and personal goals
-const defaults={sleep:8,study:1,steps:10000,podcast:31,exercise:15,water:4};
-let goals={...defaults},quickRange='';
-try{const saved=JSON.parse(localStorage.getItem('lifeos2.goals')||'{}');for(const k in defaults)if(Number.isFinite(saved[k])&&saved[k]>0)goals[k]=saved[k];if(localStorage.getItem('lifeos2.theme')==='light')document.body.classList.add('light')}catch(e){}
-const dayStart=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate());
-const addDays=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
-const daysBetween=(a,b)=>Math.round((Date.UTC(b.getFullYear(),b.getMonth(),b.getDate())-Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()))/86400000);
-function quickBounds(){let t=dayStart(new Date()),end=addDays(t,1),start;if(quickRange==='7D'||quickRange==='30D')start=addDays(end,-parseInt(quickRange));else if(quickRange==='MTD')start=new Date(t.getFullYear(),t.getMonth(),1);else if(quickRange==='QTD')start=new Date(t.getFullYear(),Math.floor(t.getMonth()/3)*3,1);else if(quickRange==='YTD')start=new Date(t.getFullYear(),0,1);return start?[start,end]:null}
-function filtered(k){let b=quickBounds();return b?rows(k).filter(r=>{let d=date(r);return d&&d>=b[0]&&d<b[1]}):originalFiltered(k)}
-function comparison(){let b=quickBounds();if(!b)return originalComparison();let count=daysBetween(...b),[prev,prevEnd]=priorBounds(b),collect=(a,z)=>TRACKERS.map(([k])=>rows(k).filter(r=>{let d=date(r);return d&&d>=a&&d<z})),cur=collect(...b),old=collect(prev,prevEnd),cv=kpiValues(...cur),pv=kpiValues(...old),src=[0,1,3,2];return cv.map((v,i)=>({current:v,previous:old[src[i]].length?pv[i]:null,change:(i===3?podcastRecords(cur[src[i]]).length:cur[src[i]].length)&&(i===3?podcastRecords(old[src[i]]).length:old[src[i]].length)&&v!=null&&pv[i]!=null&&pv[i]!==0?(v-pv[i])/pv[i]*100:null,detail:'vs '+prev.toLocaleDateString()+' – '+addDays(prevEnd,-1).toLocaleDateString()}))}
-function displayValue(v,u){if(v==null)return '—';if(u!=='hrs')return fmt(v);let m=Math.round(v*60);return Math.floor(m/60).toLocaleString()+'h '+String(m%60).padStart(2,'0')+'m'}
-function goalDays(){let b=quickBounds();if(b)return daysBetween(...b);let y=+$('year').value,m=+$('month').value,q=+$('quarter').value.slice(1);if(!y&&(m||q))y=new Date().getFullYear();if(!y)return null;let start=new Date(y,m?m-1:q?(q-1)*3:0,1),end=new Date(y,m?m:q?q*3:12,1);if(m&&q&&Math.floor((m-1)/3)+1!==q)return null;return Math.max(0,daysBetween(start,new Date(Math.min(+end,+addDays(dayStart(new Date()),1)))))}
-function podcastTarget(){let b=selectedBounds();if(!b)return null;let total=0;for(let d=b[0];d<b[1];d=addDays(d,1))total+=goals.podcast/new Date(d.getFullYear(),d.getMonth()+1,0).getDate();return total}
-function targetFor(i){let d=goalDays();return i===2?goals.steps:d>0?[goals.sleep*d,goals.study*d,goals.steps,podcastTarget()][i]:null}
-
-function card(label,value,unit,c){let i=['Total Sleep Hours','Total Study Hours','Daily Avg Steps','Podcast Records'].indexOf(label),target=targetFor(i),pct=target&&value!=null?value/target*100:null,delta=c?.change,tone=delta>0?'up':delta<0?'down':'neutral',arrow=delta==null?'':delta>0?' ▲':delta<0?' ▼':' —';return '<div class="card"><div class="metric">'+['☾','▤','↗','♫'][i]+' '+label+'</div><div class="value">'+displayValue(value,unit)+(unit==='hrs'?'':' <small>'+unit+'</small>')+'</div><div class="kpi-change '+tone+'">'+(delta==null?'N/A':(delta>0?'+':'')+Math.abs(delta).toFixed(2)+'%'+arrow)+'</div><div class="kpi-period" title="'+(c?.detail||'No comparison')+'">'+(c?.detail||'No comparable period')+'</div><div class="goalLine">Previous: '+displayValue(c?.previous,unit)+'</div><div class="goalLine">'+(pct==null?'Select a dated period for goal progress':'Target: '+displayValue(target,unit)+' · '+pct.toFixed(1)+'%')+'</div>'+(pct==null?'':'<div class="goalTrack"><span style="width:'+Math.max(0,Math.min(100,pct))+'%"></span></div>')+'</div>'}
-function enhanceTables(){document.querySelectorAll('.tablewrap').forEach(host=>{let t=host.querySelector('table');if(!t)return;let tools=host.id==='entTable'?host.parentElement.querySelector('.tableTools'):host.querySelector('.tableTools');if(!tools){tools=document.createElement('div');tools.className='tableTools';let search=document.createElement('input');search.placeholder='Search table';search.setAttribute('aria-label','Search table');tools.append(search);host.prepend(tools)}let search=tools.querySelector('input');if(search)search.oninput=()=>Array.from(t.tBodies[0].rows).forEach(r=>r.hidden=!r.textContent.toLowerCase().includes(search.value.toLowerCase()));let exportBtn=tools.querySelector('.exportPdf');if(!exportBtn){exportBtn=document.createElement('button');exportBtn.className='exportPdf';exportBtn.textContent='Export PDF';tools.append(exportBtn)}exportBtn.onclick=()=>{let w=window.open('','_blank');if(!w)return;let clone=t.cloneNode(true);Array.from(clone.tBodies[0].rows).forEach(r=>{if(r.hidden)r.remove()});let title=(host.id||'LifeOS Tracker').replace(/([A-Z])/g,' $1').replace(/^./,x=>x.toUpperCase());w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+title+' — LifeOS</title><style>body{font:12px Arial,sans-serif;padding:24px;color:#111}h1{font-size:20px;margin:0 0 6px}p{color:#555;font-size:11px;margin:0 0 18px}table{width:100%;border-collapse:collapse;white-space:normal}th,td{border:1px solid #bbb;padding:7px;text-align:left;overflow-wrap:anywhere}th{background:#edf1f5}tr{break-inside:avoid}@page{size:landscape;margin:12mm}@media print{body{padding:0}}</style></head><body><h1>LifeOS 2.0 — '+title+'</h1><p>Generated '+new Date().toLocaleString()+'</p>'+clone.outerHTML+'</body></html>');w.document.close();w.focus();w.onload=()=>{w.print()}};if(t.tHead&&t.tHead.rows[0])Array.from(t.tHead.rows[0].cells).forEach((th,i)=>{let asc=true,originalRows=Array.from(t.tBodies[0].rows);th.tabIndex=0;th.title='Sort column';th.onclick=()=>{let body=t.tBodies[0],rs=Array.from(body.rows);rs.sort((a,b)=>{let x=a.cells[i].textContent,y=b.cells[i].textContent;return (asc?1:-1)*(i===0?originalRows.indexOf(a)-originalRows.indexOf(b):Number(x.replace(/,/g,''))-Number(y.replace(/,/g,'')))});rs.forEach(r=>body.append(r));asc=!asc};th.onkeydown=e=>{if(e.key==='Enter')th.click()}})})}
-function render(){originalRender();enhanceTables();let c=comparison()||[],labels=['Sleep','Study','Steps','Podcasts'];$('highlights').innerHTML='<h2>Performance highlights</h2><div class="insightRow">'+c.map((v,i)=>'<span>'+labels[i]+': '+(v.change==null?'No comparable data':Math.abs(v.change).toFixed(1)+'% '+(v.change>=0?'higher':'lower')+' than comparison period')+'</span>').join('')+'</div>';document.querySelectorAll('#quick button').forEach(b=>b.classList.toggle('active',b.dataset.range===quickRange));$('trendTitle').textContent='Overview · '+activeMetric.overview+' · '+$('period').value}
-$('quick').innerHTML=['7D','30D','MTD','QTD','YTD','All'].map(x=>'<button data-range="'+(x==='All'?'':x)+'">'+x+'</button>').join('');$('quick').onclick=e=>{if(e.target.tagName!=='BUTTON')return;quickRange=e.target.dataset.range;['year','quarter','month'].forEach(id=>$(id).value='');render()};['year','quarter','month'].forEach(id=>$(id).onchange=()=>{quickRange='';render()});let resetOld=$('reset').onclick;$('reset').onclick=()=>{quickRange='';resetOld()};$('navToggle').onclick=()=>document.body.classList.toggle('navClosed');let themeOld=$('theme').onclick;$('theme').onclick=()=>{themeOld();try{localStorage.setItem('lifeos.theme',document.body.classList.contains('light')?'light':'dark')}catch(e){}render()};
-$('goalButton').onclick=()=>{$('goalFields').innerHTML=Object.entries({sleep:'Sleep (hours/day)',study:'Study (hours/day)',steps:'Steps/day',podcast:'Podcasts/month',exercise:'Exercise (minutes/day)',water:'Water (litres/day)'}).map(([k,l])=>'<label>'+l+'<input name="'+k+'" type="number" min="0.01" step="any" required value="'+goals[k]+'"></label>').join('');$('goalDialog').showModal()};$('goalCancel').onclick=()=>$('goalDialog').close();$('goalForm').onsubmit=e=>{e.preventDefault();for(const [k,v] of new FormData(e.target))goals[k]=Number(v);try{localStorage.setItem('lifeos.goals',JSON.stringify(goals))}catch(e){}$('goalDialog').close();render()};
-function selectedBounds(){let b=quickBounds();if(b)return b;let y=+$('year').value,m=+$('month').value,q=+$('quarter').value.slice(1);if(!y&&(m||q))y=new Date().getFullYear();if(!y||m&&q&&Math.floor((m-1)/3)+1!==q)return null;let a=new Date(y,m?m-1:q?(q-1)*3:0,1),z=new Date(y,m?m:q?q*3:12,1);return [a,new Date(Math.min(+z,+addDays(dayStart(new Date()),1)))]}
-function priorBounds(b){let [a,z]=b,d=daysBetween(a,z);if(quickRange==='7D'||quickRange==='30D')return [addDays(a,-d),a];let m=+$('month').value,q=+$('quarter').value.slice(1),w=quickRange==='MTD'?1:quickRange==='QTD'?3:quickRange==='YTD'?12:m?(!$('year').value?12:1):q?3:12;let s=new Date(a.getFullYear(),a.getMonth()-w,1),e=new Date(a.getFullYear(),a.getMonth(),1),full=new Date(a.getFullYear(),a.getMonth()+w,1);if(z>=full)return [s,e];let offset=(z.getFullYear()-a.getFullYear())*12+z.getMonth()-a.getMonth(),t=new Date(s.getFullYear(),s.getMonth()+offset,1),last=new Date(t.getFullYear(),t.getMonth()+1,0).getDate();return [s,new Date(Math.min(+e,+new Date(t.getFullYear(),t.getMonth(),Math.min(z.getDate(),last+1))))]}
-function goalRate(k){return ({sleep:goals.sleep,study:goals.study,steps:goals.steps,exercise:goals.exercise/60,water:goals.water})[k]}
-function drawMetric(tab,defs,p,id){baseDrawMetric(tab,defs,p,id);let picked=defs.find(x=>x[2]===activeMetric[tab]);if(!picked)return;let [label,rs,k]=picked;if(k==='podcast')rs=podcastRecords(rs);let b=selectedBounds(),groups=bucket(rs,p),source=tab==='overview'?({sleep:'daily',office:'daily',exercise:'daily',study:'study',articles:'study',podcast:'podcast'})[k]:tab;if(b&&b[1]>b[0]){let existing=new Map(groups),labels=new Set();for(let d=b[0];d<b[1];d=addDays(d,1))labels.add(period(d,p));groups=Array.from(labels,l=>[l,existing.get(l)||[]])}let sets=[{label,data:groups.map(x=>sum(x[1],k)),tension:.25}];if(b&&b[1]>b[0]){let old=priorBounds(b),prev=rows(source).filter(r=>{let d=date(r);return d&&d>=old[0]&&d<old[1]});if(k==='podcast')prev=podcastRecords(prev);let shifted=prev.map(r=>{let d=dayStart(date(r));if(quickRange==='7D'||quickRange==='30D')return {r,d:addDays(b[0],daysBetween(old[0],d))};let offset=(d.getFullYear()-old[0].getFullYear())*12+d.getMonth()-old[0].getMonth(),t=new Date(b[0].getFullYear(),b[0].getMonth()+offset,1);return {r,d:new Date(t.getFullYear(),t.getMonth(),Math.min(d.getDate(),new Date(t.getFullYear(),t.getMonth()+1,0).getDate()))}});sets.push({label:label+' previous period',data:groups.map(([l])=>sum(shifted.filter(x=>period(x.d,p)===l).map(x=>x.r),k)),borderColor:'#94a3b8',borderDash:[6,4]});let rate=goalRate(k);if(rate)sets.push({label:label+' target',data:groups.map(([l])=>{let count=0;for(let d=b[0];d<b[1];d=addDays(d,1))if(period(d,p)===l)count++;return count*rate}),borderColor:'#f59e0b',borderDash:[3,4]})}chart(id,'line',groups.map(x=>x[0]),sets)}
-let phaseRender=render;render=function(){phaseRender();let d=goalDays(),host=$('extraGoals');if(!host){host=document.createElement('div');host.id='extraGoals';$('highlights').after(host)}host.innerHTML=d>0?'<div class="insightRow">'+[['Exercise','daily','exercise',goals.exercise/60,'hrs'],['Water','health','water',goals.water,'L']].map(([label,source,k,rate,u])=>{let v=sum(filtered(source),k),target=rate*d,pct=v==null?null:v/target*100;return '<div class="card"><div class="metric">'+label+' goal</div><div>'+displayValue(v,u)+' / '+displayValue(target,u)+' '+(u==='hrs'?'':u)+'</div><div class="goalLine">'+(pct==null?'No data':pct.toFixed(1)+'% achieved')+'</div><div class="goalTrack"><span style="width:'+Math.max(0,Math.min(100,pct||0))+'%"></span></div></div>'}).join('')+'</div>':''};
-
-function entertainmentRows(){
- const base=filtered('podcast').filter(r=>{
-  const has=(k)=>String(r[k]??'').trim()!=='';
-  return has('Movie Name')||has('Entertainment Min')||has('Entertainment Minutes')||has('Entertainment Hours');
- });
- let local=[];try{local=JSON.parse(localStorage.getItem('lifeos2.entertainment')||'[]')}catch(e){}
- return base.map(r=>({movie:String(r['Movie Name']||'').trim(),hours:metricValue(r,'entertainment'),year:String(r.Year||r['Unnamed: 10']||''),language:String(r.Language||'').trim(),date:date(r),source:'sheet'})).filter(x=>x.movie||x.hours>0).concat(local.filter(x=>x.movie).map((x,i)=>({...x,source:'local',localIndex:i})));
+function rows(k) {
+  return (data[k] || []).filter(r => Object.keys(r).length);
 }
-function entDuration(h){if(h==null||!Number.isFinite(Number(h)))return '—';let m=Math.round(Number(h)*60);return Math.floor(m/60)+'h '+String(m%60)+'m'}
-function entBars(id,items){
- const host=$(id);if(!items.length){host.innerHTML='<div class="muted">No records yet.</div>';return}
- const max=Math.max(1,...items.map(x=>x[1]));
- host.innerHTML='<div class="entBars">'+items.map(([name,count])=>'<div class="entBarRow"><span>'+name+'</span><div class="entBarTrack"><span style="width:'+Math.max(4,count/max*100)+'%"></span></div><span>'+count+'</span></div>').join('')+'</div>';
+function originalFiltered(k) {
+  const y = +$('year').value || (!$('year').value && ($('quarter').value || $('month').value) ? new Date().getFullYear() : 0);
+  return rows(k).filter(r => {
+    const d = date(r);
+    return !d
+      ? (!$('year').value && !$('quarter').value && !$('month').value)
+      : (!y || d.getFullYear() === y) &&
+        (!$('quarter').value || 'Q' + (Math.floor(d.getMonth() / 3) + 1) === $('quarter').value) &&
+        (!$('month').value || d.getMonth() + 1 === +$('month').value);
+  });
 }
- // The below is line is used to create a Stacked Bar Chart in the Entertainment Graph
- const entLangColors={Telugu:'#f59e0b',Hindi:'#ef4444',English:'#38bdf8',Tamil:'#a78bfa',Malayalam:'#4ade80',Kannada:'#f472b6',Korean:'#2dd4bf',Unknown:'#94a3b8'};
-const entFallbackColors=['#fb923c','#facc15','#60a5fa','#c084fc','#14b8a6','#f97316','#e879f9','#84cc16'];
-function entLangColor(name,i){return entLangColors[name]||entFallbackColors[i%entFallbackColors.length]}
-function entStackedChart(groups){
- if(charts.entChart)charts.entChart.destroy();
- const css=v=>getComputedStyle(document.body).getPropertyValue(v).trim(),text=css('--text')||'#edf4fc',muted=css('--muted')||'#9aacc2',line=css('--line')||'#293b53';
- let labels=groups.map(g=>g[0]),datasets;
- const totals=new Map();
- groups.forEach(([,items])=>items.forEach(x=>{const l=x.language||'Unknown';totals.set(l,(totals.get(l)||0)+(Number(x.hours)||0))}));
- const langs=[...totals].sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
- if(!labels.length||!langs.length){labels=['No data'];datasets=[{label:'Entertainment (hrs)',data:[0],backgroundColor:'#2dd4bf',stack:'lang'}]}
- else datasets=langs.map((l,i)=>({label:l,data:groups.map(([,items])=>items.filter(x=>(x.language||'Unknown')===l).reduce((a,x)=>a+(Number(x.hours)||0),0)),backgroundColor:entLangColor(l,i),borderColor:entLangColor(l,i),borderWidth:0,stack:'lang'}));
- charts.entChart=new Chart($('entChart'),{type:'bar',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:text}},tooltip:{filter:i=>i.parsed.y>0,callbacks:{label:c=>c.dataset.label+': '+displayValue(c.parsed.y,'hrs'),footer:items=>'Total: '+displayValue(items.reduce((a,i)=>a+i.parsed.y,0),'hrs')}}},scales:{x:{stacked:true,ticks:{color:muted},grid:{color:line}},y:{stacked:true,beginAtZero:true,ticks:{color:muted,callback:v=>displayValue(v,'hrs')},grid:{color:line}}}}});
+function filtered(k) {
+  return originalFiltered(k);
+}
+function period(d, p) {
+  const y = d.getFullYear(), m = d.getMonth();
+  if (p === 'Daily') return d.toLocaleDateString();
+  if (p === 'Weekly') {
+    const x = new Date(y, m, d.getDate());
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+    return 'Week of ' + x.toLocaleDateString();
+  }
+  if (p === 'Monthly') return d.toLocaleString(undefined, { month: 'short', year: 'numeric' });
+  if (p === 'Quarterly') return y + ' Q' + (Math.floor(m / 3) + 1);
+  if (p === 'Half Yearly') return y + ' H' + (m < 6 ? 1 : 2);
+  return String(y);
+}
+function bucket(rs, p) {
+  const map = new Map();
+  rs.forEach(r => {
+    const d = date(r);
+    if (!d) return;
+    const k = period(d, p);
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(r);
+  });
+  return [...map].sort((a, b) => date(a[1][0]) - date(b[1][0]));
+}
+function sum(rs, k) {
+  const values = rs.map(r => metricValue(r, k)).filter(v => v !== null && Number.isFinite(v));
+  return values.length ? values.reduce((a, b) => a + b, 0) : null;
+}
+function fmt(x) {
+  return x === null || x === undefined || !Number.isFinite(Number(x))
+    ? '—'
+    : Number(x).toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+function fmtHoursMinutes(hours) {
+  if (hours === null || hours === undefined || !Number.isFinite(Number(hours))) return '—';
+  let t = Math.round(Number(hours) * 60), sign = t < 0 ? '-' : '';
+  t = Math.abs(t);
+  return sign + Math.floor(t / 60) + '.' + String(t % 60).padStart(2, '0');
+}
+function displayValue(v, unit) {
+  return unit === 'hrs' ? fmtHoursMinutes(v) : fmt(v);
 }
 
- 
-function renderEntertainment(){
- const rs=entertainmentRows(),movies=rs.filter(x=>x.movie),total=rs.reduce((a,x)=>a+(x.hours||0),0),avg=movies.length?total/movies.length:0;
- const langs=new Map(),decades=new Map(),buckets=new Map([['Under 2h',0],['2h–2h 30m',0],['2h 30m+',0]]);
- movies.forEach(x=>{let l=x.language||'Unknown';langs.set(l,(langs.get(l)||0)+1);let y=parseInt(x.year,10);if(y){let d=Math.floor(y/10)*10+'s';decades.set(d,(decades.get(d)||0)+1)}if(x.hours!=null){let b=x.hours<2?'Under 2h':x.hours<=2.5?'2h–2h 30m':'2h 30m+';buckets.set(b,(buckets.get(b)||0)+1)}});
- const longest=[...movies].sort((a,b)=>(b.hours||0)-(a.hours||0))[0];
- $('entKpis').innerHTML=[['MOVIES',movies.length],['TOTAL WATCH TIME',entDuration(total)],['AVERAGE RUNTIME',entDuration(avg)],['LANGUAGES',langs.size],['LONGEST',longest?longest.movie+' · '+entDuration(longest.hours):'—']].map(([a,b])=>'<div class="card entStat"><div class="metric">'+a+'</div><div class="value">'+b+'</div></div>').join('');
- entBars('entLanguages',[...langs].sort((a,b)=>b[1]-a[1]));
- entBars('entDecades',[...decades].sort((a,b)=>a[0].localeCompare(b[0])));
- entBars('entBuckets',[...buckets].filter(x=>x[1]));
- const sel=$('entLanguageFilter'),keep=sel.value;sel.innerHTML='<option value="">All languages</option>'+[...langs.keys()].sort().map(x=>'<option>'+x+'</option>').join('');sel.value=keep;
- const search=($('entSearch').value||'').toLowerCase(),lang=sel.value;
- const shown=movies.filter(x=>(!lang||x.language===lang)&&[x.movie,x.language,x.year].join(' ').toLowerCase().includes(search));
- $('entTable').innerHTML=shown.length?'<table><thead><tr><th>MOVIE</th><th>RUNTIME</th><th>YEAR</th><th>LANGUAGE</th><th>Movie Name (COUNT)</th><th>Language (COUNTD)</th><th>Year (COUNTD)</th></tr></thead><tbody>'+shown.map(x=>'<tr><td>'+x.movie+'</td><td>'+entDuration(x.hours)+'</td><td>'+x.year+'</td><td>'+x.language+'</td><td>1</td><td>'+(x.language?1:0)+'</td><td>'+(x.year?1:0)+'</td></tr>').join('')+'</tbody><tfoot><tr><td>Grand Total</td><td>'+entDuration(shown.reduce((a,x)=>a+(x.hours||0),0))+'</td><td></td><td></td><td>'+shown.filter(x=>x.movie).length+'</td><td>'+new Set(shown.map(x=>x.language).filter(Boolean)).size+'</td><td>'+new Set(shown.map(x=>x.year).filter(Boolean)).size+'</td></tr></tfoot></table>':'<div class="empty">No entertainment records for this filter.</div>';
- const byMonth=bucket(rs.filter(x=>x.date),$('period').value);
- 
-//Stacked bars by language end point
- entStackedChart(byMonth);
-
- //Actual line in the Code
-// let labels=byMonth.map(x=>x[0]),values=byMonth.map(([p,items])=>items.reduce((a,x)=>a+(Number(x.hours)||0),0));
-
- 
- // Keep an explicit zero-height bar visible when the selected period has no entertainment data.
- if(!labels.length){labels=['No data'];values=[0]}
- else values=values.map(v=>Number.isFinite(v)?v:0);
- chart('entChart','bar',labels,[{label:'Entertainment (hrs)',data:values}] );
+function podcastRecords(rs) {
+  return rs.filter(r => ['Podcast Host', 'Podcast Name', 'Podcast Episode', 'Minutes', 'Hours'].some(k => String(r[k] ?? '').trim() !== ''));
+}
+function kpiValues(d, s, po, h) {
+  const dates = new Set(h.filter(r => metricValue(r, 'steps') !== null).map(date).filter(Boolean).map(x => x.toDateString()));
+  const st = sum(h, 'steps');
+  return [sum(d, 'sleep'), sum(s, 'study'), st === null ? null : st / (dates.size || 1), podcastRecords(po).length];
+}
+function originalComparison(now = new Date()) {
+  const y = +$('year').value || now.getFullYear(), m = +$('month').value, q = +$('quarter').value.slice(1), all = !$('year').value;
+  if (m && q && Math.floor((m - 1) / 3) + 1 !== q) return null;
+  const width = m ? 1 : q ? 3 : 12, startMonth = m ? m - 1 : q ? (q - 1) * 3 : 0;
+  const start = new Date(y, startMonth, 1), end = new Date(y, startMonth + width, 1);
+  const prev = new Date(y, startMonth - (all && m ? 12 : width), 1), prevEnd = new Date(prev.getFullYear(), prev.getMonth() + width, 1);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  if (start >= today) return null;
+  const partial = today < end, stop = partial ? today : end;
+  let priorStop = prevEnd;
+  if (partial) {
+    const offset = (stop.getFullYear() - start.getFullYear()) * 12 + stop.getMonth() - start.getMonth();
+    const target = new Date(prev.getFullYear(), prev.getMonth() + offset, 1);
+    const days = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+    priorStop = new Date(target.getFullYear(), target.getMonth(), Math.min(stop.getDate(), days + 1));
+    if (priorStop > prevEnd) priorStop = prevEnd;
+  }
+  const labelDate = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const labelRange = (a, b) => labelDate(a) + ' – ' + labelDate(new Date(b.getFullYear(), b.getMonth(), b.getDate() - 1));
+  const collect = (a, b) => TRACKERS.map(([k]) => rows(k).filter(r => {
+    const d = date(r);
+    return d && d >= a && d < b;
+  }));
+  const current = collect(start, stop), previous = collect(prev, priorStop);
+  const cv = kpiValues(...current), pv = kpiValues(...previous);
+  const source = [0, 1, 3, 2];
+  return cv.map((v, i) => ({
+    previous: previous[source[i]].length ? pv[i] : null,
+    current: v,
+    change: (i === 3 ? podcastRecords(current[source[i]]).length : current[source[i]].length) &&
+            (i === 3 ? podcastRecords(previous[source[i]]).length : previous[source[i]].length) &&
+            v !== null && pv[i] !== null && pv[i] !== 0
+      ? (v - pv[i]) / pv[i] * 100
+      : null,
+    label: (all || width === 12 ? 'YoY: ' : 'vs. ') + labelRange(prev, priorStop),
+    detail: labelRange(start, stop) + ' vs ' + labelRange(prev, priorStop)
+  }));
+}
+function comparison() {
+  return originalComparison();
+}
+function oldCard(label, value, unit, comparison) {
+  const display = displayValue(value, unit);
+  const c = comparison?.change, rounded = c == null ? null : Math.round(c * 100) / 100;
+  const tone = rounded > 0 ? 'up' : rounded < 0 ? 'down' : 'neutral';
+  const delta = rounded == null ? 'N/A' : (rounded > 0 ? '▲ +' : rounded < 0 ? '▼ ' : '— ') + rounded.toFixed(2) + '%';
+  return '<div class="card"><div class="metric">' + label + '</div><div class="value">' + display + ' <small class="muted">' + unit + '</small></div><div class="kpi-change ' + tone + '">' + delta + '</div><div class="kpi-period">' + (comparison?.detail || 'No comparable period') + '</div></div>';
+}
+function card(label, value, unit, comp) {
+  return oldCard(label, value, unit, comp);
 }
 
-$('entSearch').oninput=renderEntertainment;$('entLanguageFilter').onchange=renderEntertainment;
+const chartPalette = {
+  'Sleep (hrs)': '#38bdf8', 'Office (hrs)': '#fb923c', 'Exercise (hrs)': '#4ade80',
+  'Study (hrs)': '#a78bfa', 'Articles / Blogs (hrs)': '#facc15', 'Article / Blogs (hrs)': '#facc15',
+  'Podcast (hrs)': '#f472b6', 'Entertainment (hrs)': '#2dd4bf', 'Steps': '#60a5fa',
+  'Distance (km)': '#c084fc', 'Stairs climbed': '#f97316', 'Records': '#14b8a6'
+};
+function chart(id, type, labels, datasets) {
+  if (charts[id]) charts[id].destroy();
+  const styled = datasets.map(ds => {
+    const c = ds.borderColor || chartPalette[ds.label] || '#38bdf8';
+    return {
+      ...ds,
+      borderColor: c,
+      backgroundColor: type === 'bar' ? c : 'transparent',
+      pointBackgroundColor: c,
+      pointBorderColor: c,
+      pointHoverBackgroundColor: c,
+      borderWidth: 3,
+      pointRadius: ds.borderDash ? 0 : type === 'line' ? 3 : 0,
+      pointHoverRadius: 5,
+      fill: false
+    };
+  });
+  const hourChart = datasets.some(ds => /\(hrs\)/i.test(ds.label || ''));
+  const textColor = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#edf4fc';
+  const mutedColor = getComputedStyle(document.body).getPropertyValue('--muted').trim() || '#9aacc2';
+  const lineColor = getComputedStyle(document.body).getPropertyValue('--line').trim() || '#293b53';
+  charts[id] = new Chart($(id), {
+    type,
+    data: { labels, datasets: styled },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: textColor } },
+        tooltip: {
+          callbacks: {
+            label: ctx => hourChart
+              ? (ctx.dataset.label + ': ' + displayValue(ctx.parsed.y, 'hrs'))
+              : (ctx.dataset.label + ': ' + fmt(ctx.parsed.y))
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: mutedColor }, grid: { color: lineColor } },
+        y: {
+          beginAtZero: true,
+          ticks: { color: mutedColor, callback: value => hourChart ? displayValue(value, 'hrs') : value },
+          grid: { color: lineColor }
+        }
+      }
+    }
+  });
+}
 
-const renderWithEntertainment=render;render=function(){renderWithEntertainment();renderEntertainment()};
+function table(rs, id, p) {
+  if (!rs.length) {
+    $(id).innerHTML = '<div class="empty">No records for this filter.</div>';
+    return;
+  }
+  const numeric = k => rs.some(r => r[k] !== '' && r[k] !== null && r[k] !== undefined && Number.isFinite(Number(String(r[k]).replace(/,/g, ''))));
+  const isHoursText = k => /hours?/i.test(k);
+  const isMinutes = k => ['sleep minutes', 'sleep min', 'exercise min', 'exercise mins', 'exercise minutes', 'office min', 'office mins', 'office minutes', 'entertainment min', 'entertainment mins', 'entertainment minutes', 'minutes', 'article / blogs', 'articles / blogs'].includes(norm(k));
+  const isPodcast = id === 'podcastTable', isEntertainment = id === 'entTable';
+  const allKeys = [...new Set(rs.flatMap(r => Object.keys(r)))];
+  const findKey = name => allKeys.find(k => norm(k) === norm(name));
+  const movieKey = findKey('movie name'), languageKey = findKey('language'), yearKey = findKey('year') || findKey('unnamed: 10');
+  const podcastFields = [];
+  const cols = allKeys.filter(k =>
+    norm(k) !== 'date' &&
+    !isHoursText(k) &&
+    !(isPodcast && (/^unnamed:/i.test(k) || norm(k).startsWith('entertainment') || [movieKey, languageKey, yearKey].includes(k) || podcastFields.includes(k))) &&
+    (numeric(k) || isMinutes(k))
+  );
+  if (isPodcast) cols.push(...podcastFields);
+  const label = k => {
+    if (k === 'Minutes') return id === 'studyTable' ? 'Study (hrs)' : 'Podcast (hrs)';
+    if (k === 'Article / Blogs') return 'Article / Blogs (hrs)';
+    if (k === 'Sleep Minutes') return 'Sleep (hrs)';
+    if (k === 'Office Min' || k === 'Office Minutes') return 'Office (hrs)';
+    if (k === 'Exercise Min' || k === 'Exercise Minutes') return 'Exercise (hrs)';
+    if (k === 'Entertainment Min' || k === 'Entertainment Minutes') return 'Entertainment (hrs)';
+    return k;
+  };
+  const total = (items, k) => items.reduce((acc, r) => acc + n(r[k]), 0);
+  const duration = k => isMinutes(k);
+  const cell = (items, k) => isPodcast && podcastFields.includes(k)
+    ? [...new Set(items.map(r => String(r[k] ?? '').trim()).filter(Boolean))].join(', ') || '—'
+    : duration(k) ? fmtHoursMinutes(total(items, k) / 60) : fmt(total(items, k));
+  const groups = bucket(rs, p);
+  let out = '<table><thead><tr><th>Period</th>' + cols.map(k => '<th>' + label(k) + '</th>').join('') + (isEntertainment ? '<th>Movie Name (COUNT)</th><th>Language (COUNTD)</th><th>Year (COUNTD)</th>' : '') + '</tr></thead><tbody>';
+  const summary = items => isEntertainment
+    ? '<td>' + fmt(items.filter(r => String(r['Movie Name'] ?? '').trim()).length) + '</td><td>' + fmt(new Set(items.map(r => norm(r.Language)).filter(Boolean)).size) + '</td><td>' + fmt(new Set(items.map(r => norm(r.Year || r['Unnamed: 10'])).filter(Boolean)).size) + '</td>'
+    : '';
+  groups.forEach(([periodLabel, items]) => {
+    out += '<tr><td>' + periodLabel + '</td>' + cols.map(k => '<td>' + cell(items, k) + '</td>').join('') + summary(items) + '</tr>';
+  });
+  out += '</tbody><tfoot><tr><td>Grand Total</td>' + cols.map(k => '<td>' + (isPodcast && podcastFields.includes(k) ? '' : cell(rs, k)) + '</td>').join('') + summary(rs) + '</tr></tfoot></table>';
+  $(id).innerHTML = out;
+}
+
+function overviewTable(p) {
+  const sources = {
+    daily: filtered('daily'),
+    study: filtered('study'),
+    podcast: podcastFiltered(),
+    health: filtered('health')
+  };
+  const fields = [
+    ['Sleep (hrs)', 'daily', 'sleep', 'duration'],
+    ['Exercise (hrs)', 'daily', 'exercise', 'duration'],
+    ['Office (hrs)', 'daily', 'office', 'duration'],
+    ['Study (hrs)', 'study', 'study', 'duration'],
+    ['Podcast (hrs)', 'podcast', 'podcast', 'duration'],
+    ['Article / Blogs (hrs)', 'study', 'articles', 'duration'],
+    ['Entertainment (hrs)', 'podcast', 'entertainment', 'duration'],
+    ['Movie Name (COUNT)', 'podcast', 'movie name', 'count'],
+    ['Language (COUNTD)', 'podcast', 'language', 'distinct'],
+    ['Year (COUNTD)', 'podcast', 'year', 'yearDistinct'],
+    ['Water (ML)', 'health', 'water', 'waterMl'],
+    ['Water (L)', 'health', 'water', 'numeric'],
+    ['Steps', 'health', 'steps', 'numeric'],
+    ['Distance KM', 'health', 'distance', 'numeric'],
+    ['Stairs Climbed', 'health', 'stairs', 'numeric']
+  ];
+  const groupMaps = {};
+  const periods = new Map();
+  for (const [source, records] of Object.entries(sources)) {
+    const groups = bucket(records, p);
+    groupMaps[source] = new Map(groups);
+    for (const [label, items] of groups) {
+      const t = date(items[0]).getTime();
+      if (!periods.has(label) || t < periods.get(label)) periods.set(label, t);
+    }
+  }
+  const ordered = [...periods].sort((a, b) => a[1] - b[1]).map(x => x[0]);
+  const calculate = (items, field, kind) => {
+    if (kind === 'count') return items.filter(r => Object.keys(r).some(k => norm(k) === field && String(r[k] ?? '').trim())).length;
+    if (kind === 'distinct' || kind === 'yearDistinct') {
+      const values = items.map(r => {
+        const k = Object.keys(r).find(k => norm(k) === field) || (kind === 'yearDistinct' ? Object.keys(r).find(k => norm(k) === 'unnamed: 10') : null);
+        return k === undefined || k === null ? '' : norm(r[k]);
+      }).filter(Boolean);
+      return new Set(values).size;
+    }
+    if (kind === 'waterMl') return items.reduce((a, r) => a + (metricValue(r, 'water') || 0) * 1000, 0);
+    return items.reduce((a, r) => a + (metricValue(r, field) || 0), 0);
+  };
+  const value = (items, field, kind) => {
+    const v = calculate(items, field, kind);
+    return kind === 'duration' ? fmtHoursMinutes(v) : fmt(v);
+  };
+  const header = '<tr><th>Period</th>' + fields.map(f => '<th>' + f[0] + '</th>').join('') + '</tr>';
+  const body = ordered.map(label => '<tr><td>' + label + '</td>' + fields.map(([, source, field, kind]) => '<td>' + value(groupMaps[source].get(label) || [], field, kind) + '</td>').join('') + '</tr>').join('');
+  const footer = '<tr><td>Grand Total</td>' + fields.map(([, source, field, kind]) => '<td>' + value(sources[source], field, kind) + '</td>').join('') + '</tr>';
+  $('overviewTable').innerHTML = '<table><thead>' + header + '</thead><tbody>' + body + '</tbody><tfoot>' + footer + '</tfoot></table>';
+}
+
+function trackerSeries(tab, rs) {
+  const defs = {
+    daily: [['Sleep (hrs)', 'sleep'], ['Office (hrs)', 'office'], ['Exercise (hrs)', 'exercise']],
+    study: [['Study (hrs)', 'study'], ['Articles / Blogs (hrs)', 'articles']],
+    podcast: [['Podcast (hrs)', 'podcast']],
+    health: [['Steps', 'steps'], ['Distance (km)', 'distance'], ['Stairs climbed', 'stairs'], ['Water (L)', 'water']]
+  };
+  return (defs[tab] || []).map(([label, id]) => [label, rs, id]);
+}
+function baseDrawMetric(tab, defs, p, canvasId) {
+  const options = defs.map(x => [x[0], x[2]]);
+  let chosen = activeMetric[tab];
+  if (!options.some(x => x[1] === chosen)) chosen = options.length ? options[0][1] : '';
+  activeMetric[tab] = chosen;
+  const host = $(tab + 'Chips');
+  if (host) {
+    host.innerHTML = options.map(([label, id]) => '<button class="chip ' + (id === chosen ? 'active' : '') + '" data-metric="' + id + '">' + label + '</button>').join('');
+    host.querySelectorAll('button').forEach(b => {
+      b.onclick = () => {
+        activeMetric[tab] = b.dataset.metric;
+        render();
+      };
+    });
+  }
+  const picked = defs.find(x => x[2] === chosen);
+  if (!picked) {
+    if (charts[canvasId]) {
+      charts[canvasId].destroy();
+      delete charts[canvasId];
+    }
+    return;
+  }
+  const rs = picked[1], metric = picked[2], groups = bucket(rs, p);
+  chart(canvasId, 'line', groups.map(x => x[0]), [{
+    label: picked[0],
+    data: groups.map(([, items]) => sum(items, metric) || 0),
+    tension: 0.25
+  }]);
+}
+function drawMetric(tab, defs, p, canvasId) {
+  return baseDrawMetric(tab, defs, p, canvasId);
+}
+function podcastFiltered() {
+  return ($('year').value || $('quarter').value || $('month').value) ? originalFiltered('podcast') : filtered('podcast');
+}
+function reportEscape(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function renderPodcastReport(records) {
+  records = podcastFiltered();
+  const episodes = podcastRecords(records);
+  const total = episodes.reduce((a, r) => a + (metricValue(r, 'podcast') || 0), 0);
+  const shows = new Set(episodes.map(r => String(r['Podcast Name'] || '').trim()).filter(Boolean)).size;
+  const avg = episodes.length ? total / episodes.length : 0;
+  $('podcastKpis').innerHTML = [
+    ['TOTAL LISTENING TIME', displayValue(total, 'hrs')],
+    ['EPISODES', fmt(episodes.length)],
+    ['PODCAST SHOWS', fmt(shows)],
+    ['AVG. LISTENING / EPISODE', displayValue(avg, 'hrs')]
+  ].map(([label, value]) => '<div class="card"><div class="metric">' + label + '</div><div class="value">' + value + '</div></div>').join('');
+  const sorted = [...episodes].sort((a, b) => (date(a)?.getTime() || 0) - (date(b)?.getTime() || 0));
+  const dateLabel = r => {
+    const d = date(r);
+    return d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : reportEscape(r.Date || '—');
+  };
+  $('podcastDetails').innerHTML = sorted.length
+    ? '<table><thead><tr><th>Date</th><th>Podcast Host</th><th>Podcast Name</th><th>Podcast Episode</th><th>Listening Time</th></tr></thead><tbody>' +
+      sorted.map(r => '<tr><td>' + dateLabel(r) + '</td><td>' + reportEscape(r['Podcast Host'] || '—') + '</td><td>' + reportEscape(r['Podcast Name'] || '—') + '</td><td>' + reportEscape(r['Podcast Episode'] || '—') + '</td><td>' + displayValue(metricValue(r, 'podcast'), 'hrs') + '</td></tr>').join('') +
+      '</tbody><tfoot><tr><td>Grand Total</td><td></td><td></td><td></td><td>' + displayValue(total, 'hrs') + '</td></tr></tfoot></table>'
+    : '<div class="empty">No podcast episodes for this filter.</div>';
+}
+
+function renderEntertainment(rs, p) {
+  const q = norm($('entSearch')?.value || '');
+  const langFilter = $('entLanguageFilter')?.value || '';
+  const movies = rs.filter(r => String(r['Movie Name'] ?? '').trim() !== '');
+  const langs = [...new Set(movies.map(r => String(r.Language ?? '').trim()).filter(Boolean))].sort();
+  if ($('entLanguageFilter')) {
+    const current = $('entLanguageFilter').value;
+    $('entLanguageFilter').innerHTML = '<option value="">All languages</option>' + langs.map(l => '<option' + (l === current ? ' selected' : '') + '>' + reportEscape(l) + '</option>').join('');
+    if (langFilter && langs.includes(langFilter)) $('entLanguageFilter').value = langFilter;
+  }
+  const filteredMovies = movies.filter(r => {
+    const matchesLang = !langFilter || String(r.Language ?? '').trim() === langFilter;
+    const matchesQuery = !q || norm(r['Movie Name']).includes(q) || norm(r.Language).includes(q);
+    return matchesLang && matchesQuery;
+  });
+  const totalMins = filteredMovies.reduce((a, r) => a + n(r['Entertainment Min']), 0);
+  const uniqueLangs = new Set(filteredMovies.map(r => norm(r.Language)).filter(Boolean)).size;
+  $('entKpis').innerHTML = [
+    ['TITLES LOGGED', fmt(filteredMovies.length)],
+    ['ENTERTAINMENT TIME', fmtHoursMinutes(totalMins / 60) + ' hrs'],
+    ['LANGUAGES', fmt(uniqueLangs)],
+    ['AVG. RUNTIME', filteredMovies.length ? Math.round(totalMins / filteredMovies.length) + ' min' : '—']
+  ].map(([label, value]) => '<div class="card entStat"><div class="metric">' + label + '</div><div class="value">' + value + '</div></div>').join('');
+
+  const renderBars = (hostId, counts) => {
+    const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const max = entries[0]?.[1] || 1;
+    $(hostId).innerHTML = entries.length
+      ? '<div class="entBars">' + entries.map(([k, v]) => '<div class="entBarRow"><span>' + reportEscape(k) + '</span><div class="entBarTrack"><span style="width:' + Math.round((v / max) * 100) + '%"></span></div><span>' + v + '</span></div>').join('') + '</div>'
+      : '<div class="empty">No data</div>';
+  };
+  const langCounts = new Map(), decadeCounts = new Map(), bucketCounts = new Map();
+  filteredMovies.forEach(r => {
+    const l = String(r.Language || 'Unknown').trim();
+    langCounts.set(l, (langCounts.get(l) || 0) + 1);
+    const yr = parseInt(r.Year || r['Unnamed: 10'], 10);
+    const dec = Number.isFinite(yr) ? Math.floor(yr / 10) * 10 + 's' : 'Unknown';
+    decadeCounts.set(dec, (decadeCounts.get(dec) || 0) + 1);
+    const mins = n(r['Entertainment Min']);
+    const b = mins < 90 ? '< 90m' : mins <= 150 ? '90–150m' : '> 150m';
+    bucketCounts.set(b, (bucketCounts.get(b) || 0) + 1);
+  });
+  renderBars('entLanguages', langCounts);
+  renderBars('entDecades', decadeCounts);
+  renderBars('entBuckets', bucketCounts);
+
+  const groups = bucket(filteredMovies, p);
+  chart('entChart', 'bar', groups.map(x => x[0]), [{
+    label: 'Entertainment (hrs)',
+    data: groups.map(([, items]) => items.reduce((a, r) => a + n(r['Entertainment Min']) / 60, 0)),
+    borderColor: '#2dd4bf'
+  }]);
+
+  $('entTable').innerHTML = filteredMovies.length
+    ? '<table><thead><tr><th>Date</th><th>Movie Name</th><th>Language</th><th>Year</th><th>Runtime (min)</th></tr></thead><tbody>' +
+      filteredMovies.map(r => '<tr><td>' + reportEscape(r.Date || '—') + '</td><td>' + reportEscape(r['Movie Name'] || '—') + '</td><td>' + reportEscape(r.Language || '—') + '</td><td>' + reportEscape(r.Year || r['Unnamed: 10'] || '—') + '</td><td>' + fmt(n(r['Entertainment Min'])) + '</td></tr>').join('') +
+      '</tbody><tfoot><tr><td>Grand Total</td><td>' + fmt(filteredMovies.length) + ' titles</td><td>' + fmt(uniqueLangs) + '</td><td></td><td>' + fmt(totalMins) + '</td></tr></tfoot></table>'
+    : '<div class="empty">No matching entertainment records.</div>';
+}
+
+function renderHighlights(d, s, po, h) {
+  const sleepHrs = fmtHoursMinutes(sum(d, 'sleep') || 0);
+  const studyHrs = fmtHoursMinutes(sum(s, 'study') || 0);
+  const podHrs = fmtHoursMinutes(sum(po, 'podcast') || 0);
+  const stepsTotal = fmt(sum(h, 'steps') || 0);
+  $('highlights').innerHTML = '<div class="insightRow">' +
+    '<span><strong>Sleep logged:</strong> ' + sleepHrs + ' hrs</span>' +
+    '<span><strong>Study logged:</strong> ' + studyHrs + ' hrs</span>' +
+    '<span><strong>Podcast logged:</strong> ' + podHrs + ' hrs</span>' +
+    '<span><strong>Steps logged:</strong> ' + stepsTotal + '</span>' +
+    '</div>';
+}
+
+function originalRender() {
+  const p = $('period').value, d = filtered('daily'), s = filtered('study'), po = podcastFiltered(), h = filtered('health');
+  const values = kpiValues(d, s, po, h), changes = comparison() || [];
+  $('kpis').innerHTML = [
+    ['Total Sleep Hours', 'hrs'],
+    ['Total Study Hours', 'hrs'],
+    ['Daily Avg Steps', 'steps'],
+    ['Podcast Records', 'records']
+  ].map(([label, unit], i) => card(label, values[i], unit, changes[i])).join('');
+  renderHighlights(d, s, po, h);
+  const series = [
+    ['Sleep (hrs)', d, 'sleep'],
+    ['Office (hrs)', d, 'office'],
+    ['Exercise (hrs)', d, 'exercise'],
+    ['Study (hrs)', s, 'study'],
+    ['Articles / Blogs (hrs)', s, 'articles'],
+    ['Podcast (hrs)', po, 'podcast']
+  ];
+  drawMetric('overview', series, p, 'trend');
+  $('trendTitle').textContent = 'Overview Trends (hours) · ' + p + ' view';
+  chart('records', 'bar', TRACKERS.map(x => x[1]), [{
+    label: 'Records',
+    data: TRACKERS.map(x => x[0] === 'podcast' ? podcastRecords(filtered(x[0])).length : filtered(x[0]).length)
+  }]);
+  overviewTable(p);
+  TRACKERS.forEach(([k]) => {
+    const rs = k === 'podcast' ? podcastFiltered() : filtered(k);
+    table(rs, k + 'Table', p);
+    const defs = trackerSeries(k, rs);
+    drawMetric(k, defs, p, k + 'Chart');
+  });
+  renderPodcastReport(po, p);
+  renderEntertainment(po, p);
+}
+function render() {
+  return originalRender();
+}
+
+function filters() {
+  const ds = TRACKERS.flatMap(([k]) => rows(k).map(date).filter(Boolean));
+  const years = [...new Set(ds.map(d => d.getFullYear()))].sort((a, b) => b - a);
+  $('year').innerHTML = '<option value="">All Years</option>' + years.map(y => '<option>' + y + '</option>').join('');
+  $('month').innerHTML = '<option value="">All Months</option>' + Array.from({ length: 12 }, (_, i) => '<option value="' + (i + 1) + '">' + new Date(2000, i, 1).toLocaleString(undefined, { month: 'long' }) + '</option>').join('');
+  const quickDefs = [
+    ['All Time', () => { $('year').value = ''; $('quarter').value = ''; $('month').value = ''; }],
+    ['This Year', () => { const latestY = years[0] || new Date().getFullYear(); $('year').value = String(latestY); $('quarter').value = ''; $('month').value = ''; }],
+    ['This Month', () => { const now = new Date(); $('year').value = String(years.includes(now.getFullYear()) ? now.getFullYear() : (years[0] || now.getFullYear())); $('month').value = String(now.getMonth() + 1); $('quarter').value = ''; }]
+  ];
+  $('quick').innerHTML = quickDefs.map(([label], idx) => '<button type="button" data-q="' + idx + '">' + label + '</button>').join('');
+  $('quick').querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      $('quick').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      quickDefs[+btn.dataset.q][1]();
+      render();
+    };
+  });
+}
+
+function getGoals() {
+  try {
+    return { ...DEFAULT_GOALS, ...(JSON.parse(localStorage.getItem('lifeos_goals_v2') || '{}')) };
+  } catch {
+    return { ...DEFAULT_GOALS };
+  }
+}
+function openGoalDialog() {
+  const g = getGoals();
+  $('goalFields').innerHTML = [
+    ['sleepHours', 'Daily Sleep Target (hrs)'],
+    ['studyHours', 'Daily Study Target (hrs)'],
+    ['dailySteps', 'Daily Steps Target'],
+    ['podcastEpisodes', 'Target Podcast Episodes']
+  ].map(([k, lbl]) => '<label><span>' + lbl + '</span><input type="number" step="any" name="' + k + '" value="' + g[k] + '"></label>').join('');
+  $('goalDialog').showModal();
+}
+
+async function load() {
+  $('status').className = 'status syncing';
+  $('status').textContent = 'Syncing…';
+  try {
+    const r = await fetch(DATA + '?v=' + Date.now());
+    if (!r.ok) throw Error('HTTP ' + r.status);
+    data = await r.json();
+    $('status').className = 'status';
+    $('status').textContent = 'Live Sync Active';
+  } catch {
+    data = SAMPLE_DATA;
+    $('status').className = 'status error';
+    $('status').textContent = 'Offline / Sample Data';
+  }
+  filters();
+  render();
+  const updated = new Date();
+  $('lastUpdated').textContent = 'Last updated: ' + updated.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  $('lastUpdated').title = 'Data refreshed at ' + updated.toLocaleString();
+}
+
+document.querySelectorAll('.tab').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === b));
+    document.querySelectorAll('.section').forEach(x => x.classList.toggle('active', x.id === b.dataset.tab));
+    render();
+  };
+});
+$('navToggle').onclick = () => document.body.classList.toggle('navClosed');
+$('theme').onclick = () => {
+  document.body.classList.toggle('light');
+  $('theme').textContent = document.body.classList.contains('light') ? '🌙 Theme' : '☀️ Theme';
+  render();
+};
+$('refresh').onclick = load;
+['year', 'quarter', 'month', 'period'].forEach(id => $(id).onchange = render);
+$('reset').onclick = () => {
+  $('year').value = '';
+  $('quarter').value = '';
+  $('month').value = '';
+  $('period').value = 'Monthly';
+  if ($('entSearch')) $('entSearch').value = '';
+  if ($('entLanguageFilter')) $('entLanguageFilter').value = '';
+  document.querySelectorAll('#quick button').forEach(b => b.classList.remove('active'));
+  render();
+};
+$('goalButton').onclick = openGoalDialog;
+$('goalCancel').onclick = () => $('goalDialog').close();
+$('goalForm').onsubmit = e => {
+  e.preventDefault();
+  const fd = new FormData($('goalForm'));
+  const next = {};
+  for (const [k, v] of fd.entries()) next[k] = Number(v) || 0;
+  localStorage.setItem('lifeos_goals_v2', JSON.stringify(next));
+  $('goalDialog').close();
+  render();
+};
+if ($('entSearch')) $('entSearch').oninput = () => renderEntertainment(podcastFiltered(), $('period').value);
+if ($('entLanguageFilter')) $('entLanguageFilter').onchange = () => renderEntertainment(podcastFiltered(), $('period').value);
+
 load();
-</script></body></html>
+</script>
