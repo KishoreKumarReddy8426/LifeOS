@@ -220,9 +220,7 @@ function targetFor(i){let d=goalDays();return i===2?goals.steps:d>0?[goals.sleep
 function card(label,value,unit,c){let i=['Total Sleep Hours','Total Study Hours','Daily Avg Steps','Podcast Records'].indexOf(label),target=targetFor(i),pct=target&&value!=null?value/target*100:null,delta=c?.change,tone=delta>0?'up':delta<0?'down':'neutral',arrow=delta==null?'':delta>0?' ▲':delta<0?' ▼':' —';return '<div class="card"><div class="metric">'+['☾','▤','↗','♫'][i]+' '+label+'</div><div class="value">'+displayValue(value,unit)+(unit==='hrs'?'':' <small>'+unit+'</small>')+'</div><div class="kpi-change '+tone+'">'+(delta==null?'N/A':(delta>0?'+':'')+Math.abs(delta).toFixed(2)+'%'+arrow)+'</div><div class="kpi-period" title="'+(c?.detail||'No comparison')+'">'+(c?.detail||'No comparable period')+'</div><div class="goalLine">Previous: '+displayValue(c?.previous,unit)+'</div><div class="goalLine">'+(pct==null?'Select a dated period for goal progress':'Target: '+displayValue(target,unit)+' · '+pct.toFixed(1)+'%')+'</div>'+(pct==null?'':'<div class="goalTrack"><span style="width:'+Math.max(0,Math.min(100,pct))+'%"></span></div>')+'</div>'}
 function enhanceTables(){document.querySelectorAll('.tablewrap').forEach(host=>{let t=host.querySelector('table');if(!t)return;let tools=host.id==='entTable'?host.parentElement.querySelector('.tableTools'):host.querySelector('.tableTools');if(!tools){tools=document.createElement('div');tools.className='tableTools';let search=document.createElement('input');search.placeholder='Search table';search.setAttribute('aria-label','Search table');tools.append(search);host.prepend(tools)}let search=tools.querySelector('input');if(search)search.oninput=()=>Array.from(t.tBodies[0].rows).forEach(r=>r.hidden=!r.textContent.toLowerCase().includes(search.value.toLowerCase()));let exportBtn=tools.querySelector('.exportPdf');if(!exportBtn){exportBtn=document.createElement('button');exportBtn.className='exportPdf';exportBtn.textContent='Export PDF';tools.append(exportBtn)}exportBtn.onclick=()=>{let w=window.open('','_blank');if(!w)return;let clone=t.cloneNode(true);Array.from(clone.tBodies[0].rows).forEach(r=>{if(r.hidden)r.remove()});let title=(host.id||'LifeOS Tracker').replace(/([A-Z])/g,' $1').replace(/^./,x=>x.toUpperCase());w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+title+' — LifeOS</title><style>body{font:12px Arial,sans-serif;padding:24px;color:#111}h1{font-size:20px;margin:0 0 6px}p{color:#555;font-size:11px;margin:0 0 18px}table{width:100%;border-collapse:collapse;white-space:normal}th,td{border:1px solid #bbb;padding:7px;text-align:left;overflow-wrap:anywhere}th{background:#edf1f5}tr{break-inside:avoid}@page{size:landscape;margin:12mm}@media print{body{padding:0}}</style></head><body><h1>LifeOS 2.0 — '+title+'</h1><p>Generated '+new Date().toLocaleString()+'</p>'+clone.outerHTML+'</body></html>');w.document.close();w.focus();w.onload=()=>{w.print()}};if(t.tHead&&t.tHead.rows[0])Array.from(t.tHead.rows[0].cells).forEach((th,i)=>{let asc=true,originalRows=Array.from(t.tBodies[0].rows);th.tabIndex=0;th.title='Sort column';th.onclick=()=>{let body=t.tBodies[0],rs=Array.from(body.rows);rs.sort((a,b)=>{let x=a.cells[i].textContent,y=b.cells[i].textContent;return (asc?1:-1)*(i===0?originalRows.indexOf(a)-originalRows.indexOf(b):Number(x.replace(/,/g,''))-Number(y.replace(/,/g,'')))});rs.forEach(r=>body.append(r));asc=!asc};th.onkeydown=e=>{if(e.key==='Enter')th.click()}})})}
 function renderExecutiveSummary(){
- const now=dayStart(new Date()),monthStart=new Date(now.getFullYear(),now.getMonth(),1),elapsed=now.getDate();
- const prevStart=new Date(now.getFullYear(),now.getMonth()-1,1),prevDays=new Date(prevStart.getFullYear(),prevStart.getMonth()+1,0).getDate(),prevElapsed=Math.min(elapsed,prevDays),prevEnd=addDays(prevStart,prevElapsed);
- const monthEnd=addDays(now,1),monthDays=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+ const today=dayStart(new Date()),tomorrow=addDays(today,1);
  const metrics=[
   {key:'sleep',label:'Sleep',source:'daily',goal:goals.sleep,unit:'hrs',targetLabel:fmt(goals.sleep)+' hrs/day'},
   {key:'study',label:'Study',source:'study',goal:goals.study,unit:'hrs',targetLabel:fmt(goals.study)+' hrs/day'},
@@ -231,69 +229,73 @@ function renderExecutiveSummary(){
   {key:'water',label:'Water',source:'health',goal:goals.water,unit:'litres',targetLabel:fmt(goals.water)+' L/day'},
   {key:'podcast',label:'Podcasts',source:'podcast',goal:goals.podcast,unit:'episodes',targetLabel:fmt(goals.podcast)+' episodes/month'}
  ];
- const byDay=(source,key,start,end)=>{
-  const map=new Map();
+ const explicit=!!(quickBounds()||$('year').value||$('quarter').value||$('month').value);
+ let bounds=selectedBounds();
+ if(bounds)bounds=[bounds[0],new Date(Math.min(+bounds[1],+tomorrow))];
+ else if(!explicit){
+  const dates=metrics.flatMap(m=>rows(m.source).map(date).filter(Boolean));
+  if(dates.length)bounds=[new Date(Math.min(...dates.map(d=>+dayStart(d)))),tomorrow];
+ }
+ if(!bounds||bounds[1]<=bounds[0]){
+  const msg='<div class="empty">No dated records are available for the selected filters.</div>';
+  $('execSummaryContent').innerHTML=msg;$('highlights').innerHTML=msg;return;
+ }
+ const [start,end]=bounds,elapsed=Math.max(1,daysBetween(start,end));
+ const previousBounds=explicit?priorBounds(bounds):null;
+ const rangeLabel=start.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})+' – '+addDays(end,-1).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+ const previousLabel=previousBounds?'Compared with '+previousBounds[0].toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})+' – '+addDays(previousBounds[1],-1).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}):'All available history; no prior-period comparison';
+ const byDay=(source,key,range)=>{
+  const map=new Map();if(!range)return [];
   rows(source).forEach(r=>{
-   const d=date(r);if(!d||d<start||d>=end)return;
+   const d=date(r);if(!d||d<range[0]||d>=range[1])return;
    const value=key==='podcast'?(podcastRecords([r]).length?1:null):metricValue(r,key);
    if(value===null||!Number.isFinite(value))return;
-   const id=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();
-   map.set(id,(map.get(id)||0)+value);
-  });
-  return [...map.values()];
+   const id=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();map.set(id,(map.get(id)||0)+value);
+  });return [...map.values()];
  };
  const fmtMetric=(value,key)=>{
   if(value===null||!Number.isFinite(value))return 'No data';
   if(key==='sleep'||key==='study')return displayValue(value,'hrs');
   if(key==='exercise')return fmt(value*60)+' min';
-  if(key==='water')return fmt(value)+' L';
-  if(key==='steps')return fmt(value);
-  return fmt(value);
+  if(key==='water')return fmt(value)+' L';return fmt(value);
+ };
+ const expectedPodcasts=range=>{
+  let target=0;if(!range)return target;
+  for(let d=range[0];d<range[1];d=addDays(d,1))target+=goals.podcast/new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  return target;
  };
  const results=metrics.map(m=>{
-  const current=byDay(m.source,m.key,monthStart,monthEnd),previous=byDay(m.source,m.key,prevStart,prevEnd);
-  const total=current.reduce((a,b)=>a+b,0),average=current.length?total/current.length:null;
-  const prevAverage=previous.length?previous.reduce((a,b)=>a+b,0)/previous.length:null;
+  const current=byDay(m.source,m.key,bounds),previous=byDay(m.source,m.key,previousBounds);
+  const total=current.reduce((a,b)=>a+b,0),average=current.length?total/current.length:null,prevAverage=previous.length?previous.reduce((a,b)=>a+b,0)/previous.length:null;
   const change=average!==null&&prevAverage!==null&&prevAverage!==0?(average-prevAverage)/prevAverage*100:null;
-  const hitDays=m.key==='podcast'?0:current.filter(v=>v>=m.goal).length;
-  const hitRate=current.length?hitDays/current.length*100:null;
-  const coverage=current.length/elapsed*100;
-  const expected=m.key==='podcast'?m.goal*elapsed/monthDays:null;
-  const onPace=m.key==='podcast'?total>=expected:coverage>=50&&hitRate>=80;
+  const hitDays=m.key==='podcast'?0:current.filter(v=>v>=m.goal).length,hitRate=current.length?hitDays/current.length*100:null,coverage=current.length/elapsed*100;
+  const expected=m.key==='podcast'?expectedPodcasts(bounds):m.goal*elapsed,onPace=m.key==='podcast'?total>=expected:(coverage>=50&&hitRate>=80);
   return {...m,current,previous,total,average,prevAverage,change,hitDays,hitRate,coverage,expected,onPace,tracked:current.length};
  });
- const improving=results.filter(x=>x.change!==null&&x.change>=5);
- const slipping=results.filter(x=>x.change!==null&&x.change<=-5);
- const stable=results.filter(x=>x.change!==null&&x.change>-5&&x.change<5);
- const achieved=results.filter(x=>x.key==='podcast'?x.onPace:x.coverage>=50&&x.hitRate>=80);
- const attention=[];
+ const improving=results.filter(x=>x.change!==null&&x.change>=5),slipping=results.filter(x=>x.change!==null&&x.change<=-5),stable=results.filter(x=>x.change!==null&&x.change>-5&&x.change<5);
+ const achieved=results.filter(x=>x.key==='podcast'?x.onPace:x.coverage>=50&&x.hitRate>=80),attention=[];
  results.forEach(x=>{
-  if(x.key==='podcast'){
-   if(x.total<x.expected)attention.push(x.label+': '+fmt(x.total)+' episodes logged; pace target is '+fmt(x.expected)+' by today');
-  }else if(!x.tracked){
-   attention.push(x.label+': no entries logged this month yet');
-  }else if(x.coverage<50){
-   attention.push(x.label+': only '+x.tracked+' of '+elapsed+' days logged; add data before judging progress');
-  }else if(x.hitRate<80){
-   attention.push(x.label+': goal met on '+x.hitDays+'/'+x.tracked+' tracked days ('+Math.round(x.hitRate)+'%)');
-  }
+  if(x.key==='podcast'){if(x.total<x.expected)attention.push(x.label+': '+fmt(x.total)+' episodes logged; pace target is '+fmt(x.expected)+' for this selected period')}
+  else if(!x.tracked)attention.push(x.label+': no entries logged in this selected period');
+  else if(x.coverage<50)attention.push(x.label+': only '+x.tracked+' of '+elapsed+' days logged; add data before judging progress');
+  else if(x.hitRate<80)attention.push(x.label+': goal met on '+x.hitDays+'/'+x.tracked+' tracked days ('+Math.round(x.hitRate)+'%)');
  });
- const trendText=improving.length?improving.map(x=>x.label).join(', ')+' improving': 'No clear improvement yet';
+ const trendText=improving.length?improving.map(x=>x.label).join(', ')+' improving':'No clear improvement of 5% or more';
  const slipText=slipping.length?slipping.map(x=>x.label+' ('+Math.abs(x.change).toFixed(1)+'%)').join(', '):'No tracked habit has declined by 5% or more';
- const goalText=achieved.length?achieved.map(x=>x.key==='podcast'?'Podcasts — on pace ('+fmt(x.total)+'/'+fmt(x.goal)+' episodes)':x.label+' — '+x.hitDays+'/'+x.tracked+' days').join(' · '):'No goal has enough evidence to be marked on track yet';
+ const goalText=achieved.length?achieved.map(x=>x.key==='podcast'?'Podcasts — on pace ('+fmt(x.total)+'/'+fmt(x.expected)+' episodes)':x.label+' — '+x.hitDays+'/'+x.tracked+' tracked days').join(' · '):'No goal has enough evidence to be marked on track yet';
  const attentionText=attention.length?attention.map(x=>'<li>'+reportEscape(x)+'</li>').join(''):'<li>No immediate goal or logging gaps flagged from the available records.</li>';
- const changeText=x=>x.change===null?'Not enough comparable data':(x.change>0?'+':'')+x.change.toFixed(1)+'% vs same elapsed days last month';
+ const changeText=x=>!previousBounds?'Not compared — all-history view':x.change===null?'Not enough comparable data':(x.change>0?'+':'')+x.change.toFixed(1)+'% vs previous period';
  const habitRows=results.map(x=>{
-  const state=x.key==='podcast'?(x.onPace?'On pace': 'Behind pace'):(x.tracked===0?'No data':x.coverage<50?'Limited logs':x.hitRate>=80?'On track':x.hitRate>=60?'Watch':'Below goal');
-  const detail=x.key==='podcast'?fmt(x.total)+' episodes · '+fmt(x.expected)+' expected by today':(x.average===null?'No entries':fmtMetric(x.average,x.key)+' average · goal '+x.targetLabel+' · '+x.hitDays+'/'+x.tracked+' tracked days met');
+  const state=x.key==='podcast'?(x.onPace?'On pace':'Behind pace'):(x.tracked===0?'No data':x.coverage<50?'Limited logs':x.hitRate>=80?'On track':x.hitRate>=60?'Watch':'Below goal');
+  const detail=x.key==='podcast'?fmt(x.total)+' episodes · '+fmt(x.expected)+' expected for selected dates':(x.average===null?'No entries':fmtMetric(x.average,x.key)+' daily average · goal '+x.targetLabel+' · '+x.hitDays+'/'+x.tracked+' tracked days met');
   return '<div class="execHabit"><div class="execHabitTop"><strong>'+x.label+'</strong><span class="execTag '+(state==='On track'||state==='On pace'?'good':state==='Watch'||state==='Limited logs'?'warn':state==='No data'?'mutedTag':'bad')+'">'+state+'</span></div><div class="execHabitDetail">'+detail+'</div><div class="execHabitChange">'+changeText(x)+'</div></div>';
  }).join('');
- const dateRange=monthStart.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' – '+now.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
- const detailedHtml='<div class="execHead"><div><h2>Executive Summary · '+now.toLocaleDateString(undefined,{month:'long',year:'numeric'})+'</h2><p class="execSub">Month to date ('+dateRange+'). Trend compares daily averages with the same elapsed days last month. Missing logs are not counted as missed goals.</p></div><div class="execPulse"><strong>'+improving.length+' improving</strong><span>'+slipping.length+' slipping · '+stable.length+' stable</span></div></div><div class="execGrid"><section class="execBlock"><h3>Am I improving?</h3><p>'+reportEscape(trendText)+'.</p><p class="execSub">'+reportEscape(slipText)+'.</p></section><section class="execBlock"><h3>Which habits are slipping?</h3><p>'+(slipping.length?slipping.map(x=>reportEscape(x.label)+' <strong>−'+Math.abs(x.change).toFixed(1)+'%</strong>').join('<br>'):'No clear declines of 5% or more in comparable daily averages.')+'</p><p class="execSub">A positive change is treated as improvement toward the minimum goal.</p></section><section class="execBlock"><h3>Which goals am I achieving?</h3><p>'+reportEscape(goalText)+'</p><p class="execSub">Daily goals use logged days; podcast goal is prorated to the elapsed days of this month.</p></section><section class="execBlock"><h3>What needs attention this month?</h3><ul class="execAttention">'+attentionText+'</ul></section></div><div class="execHabits"><h3>Habit scorecard</h3><div class="execHabitGrid">'+habitRows+'</div></div>';
+ const heading=quickRange||($('year').value||$('quarter').value||$('month').value?[$('year').value,$('quarter').value,$('month').value].filter(Boolean).join(' · '):'All available history');
+ const detailedHtml='<div class="execHead"><div><h2>Executive Summary · '+reportEscape(heading)+'</h2><p class="execSub">Selected dates: '+rangeLabel+'. '+previousLabel+'. Daily averages use days with recorded values; missing logs are not counted as missed goals.</p></div><div class="execPulse"><strong>'+improving.length+' improving</strong><span>'+slipping.length+' slipping · '+stable.length+' stable</span></div></div><div class="execGrid"><section class="execBlock"><h3>Am I improving?</h3><p>'+reportEscape(trendText)+'.</p><p class="execSub">'+reportEscape(slipText)+'.</p></section><section class="execBlock"><h3>Which habits are slipping?</h3><p>'+(slipping.length?slipping.map(x=>reportEscape(x.label)+' <strong>−'+Math.abs(x.change).toFixed(1)+'%</strong>').join('<br>'):'No clear declines of 5% or more in comparable daily averages.')+'</p><p class="execSub">Changes compare the selected period with the preceding equivalent period.</p></section><section class="execBlock"><h3>Which goals am I achieving?</h3><p>'+reportEscape(goalText)+'</p><p class="execSub">Daily goals are assessed on logged days; podcast target is prorated across the selected calendar dates.</p></section><section class="execBlock"><h3>What needs attention?</h3><ul class="execAttention">'+attentionText+'</ul></section></div><div class="execHabits"><h3>Habit scorecard</h3><div class="execHabitGrid">'+habitRows+'</div></div>';
  $('execSummaryContent').innerHTML=detailedHtml;
  const compactCard=(label,value,detail)=>'<div class="card"><div class="metric">'+label+'</div><div class="value">'+value+'</div><div class="kpi-period">'+detail+'</div></div>';
  const attentionShort=attention.slice(0,2).map(x=>'<li>'+reportEscape(x)+'</li>').join('')||'<li>No immediate priorities flagged.</li>';
- $('highlights').innerHTML='<div class="execHead"><div><h2>Executive Overview · '+now.toLocaleDateString(undefined,{month:'long',year:'numeric'})+'</h2><p class="execSub">A quick month-to-date snapshot. Open Executive Summary for the reasons, comparisons and full habit scorecard.</p></div><div class="execPulse"><strong>'+achieved.length+'/'+results.length+' goals on track</strong><span>'+improving.length+' improving · '+slipping.length+' slipping</span></div></div><div class="cards">'+compactCard('IMPROVING',improving.length,improving.length?improving.map(x=>x.label).join(', '):'No clear gains yet')+compactCard('SLIPPING',slipping.length,slipping.length?slipping.map(x=>x.label).join(', '):'No clear declines')+compactCard('GOALS ON TRACK',achieved.length+' / '+results.length,'Based on available logs and targets')+compactCard('NEEDS ATTENTION',attention.length,attention.length?'Priority items listed below':'No immediate gaps flagged')+'</div><div class="execBlock" style="margin-top:14px"><h3>This month: top priorities</h3><ul>'+attentionShort+'</ul></div><div class="execHabits"><h3>Habit status at a glance</h3><div class="execHabitGrid">'+habitRows+'</div></div>';
+ $('highlights').innerHTML='<div class="execHead"><div><h2>Executive Overview · '+reportEscape(heading)+'</h2><p class="execSub">A quick snapshot for '+rangeLabel+'. Open Executive Summary for comparisons and the full habit scorecard.</p></div><div class="execPulse"><strong>'+achieved.length+'/'+results.length+' goals on track</strong><span>'+improving.length+' improving · '+slipping.length+' slipping</span></div></div><div class="cards">'+compactCard('IMPROVING',improving.length,improving.length?improving.map(x=>x.label).join(', '):'No clear gains yet')+compactCard('SLIPPING',slipping.length,slipping.length?slipping.map(x=>x.label).join(', '):'No clear declines')+compactCard('GOALS ON TRACK',achieved.length+' / '+results.length,'Based on available logs and targets')+compactCard('NEEDS ATTENTION',attention.length,attention.length?'Priority items listed below':'No immediate gaps flagged')+'</div><div class="execBlock" style="margin-top:14px"><h3>Selected period: top priorities</h3><ul>'+attentionShort+'</ul></div><div class="execHabits"><h3>Habit status at a glance</h3><div class="execHabitGrid">'+habitRows+'</div></div>';
 }
 function render(){originalRender();enhanceTables();renderExecutiveSummary();document.querySelectorAll('#quick button').forEach(b=>b.classList.toggle('active',b.dataset.range===quickRange));$('trendTitle').textContent='Overview · '+activeMetric.overview+' · '+$('period').value}
 $('quick').innerHTML=['7D','30D','MTD','QTD','YTD','All'].map(x=>'<button data-range="'+(x==='All'?'':x)+'">'+x+'</button>').join('');$('quick').onclick=e=>{if(e.target.tagName!=='BUTTON')return;quickRange=e.target.dataset.range;['year','quarter','month'].forEach(id=>$(id).value='');render()};['year','quarter','month'].forEach(id=>$(id).onchange=()=>{quickRange='';render()});let resetOld=$('reset').onclick;$('reset').onclick=()=>{quickRange='';resetOld()};$('navToggle').onclick=()=>document.body.classList.toggle('navClosed');let themeOld=$('theme').onclick;$('theme').onclick=()=>{themeOld();try{localStorage.setItem('lifeos.theme',document.body.classList.contains('light')?'light':'dark')}catch(e){}render()};
